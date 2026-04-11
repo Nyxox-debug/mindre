@@ -1,99 +1,124 @@
 import { writable } from 'svelte/store';
 
 function generateId() {
-	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+	return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
 }
 
 function createFlashcardStore() {
-	const STORAGE_KEY = 'mindre-data';
-	
+	const STORAGE_KEY = 'mindre-cache';
+
+	// Seed from localStorage as instant cache while KV loads
 	let initialData = { decks: [] };
-	
-	if (typeof window !== 'undefined' && window.localStorage) {
-		const stored = localStorage.getItem(STORAGE_KEY);
-		if (stored) {
-			try {
-				initialData = JSON.parse(stored);
-			} catch (e) {
-				console.error('Failed to parse stored data:', e);
-			}
-		}
+	if (typeof window !== 'undefined') {
+		try {
+			const cached = localStorage.getItem(STORAGE_KEY);
+			if (cached) initialData = JSON.parse(cached);
+		} catch {}
 	}
-	
+
 	const { subscribe, set, update } = writable(initialData);
-	
-	function persist(data) {
-		if (typeof window !== 'undefined' && window.localStorage) {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+	let syncing = false;
+
+	// Write to KV (debounced) + update localStorage cache
+	async function persist(data) {
+		if (typeof window === 'undefined') return;
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+		if (syncing) return;
+		syncing = true;
+		try {
+			await fetch('/api/decks', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			});
+		} catch (e) {
+			console.warn('Sync failed, will use local cache:', e);
+		} finally {
+			syncing = false;
 		}
 	}
-	
+
+	// Load from KV on startup
+	async function loadFromServer() {
+		if (typeof window === 'undefined') return;
+		try {
+			const res = await fetch('/api/decks');
+			if (res.ok) {
+				const data = await res.json();
+				set(data);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+			}
+		} catch (e) {
+			console.warn('Could not reach server, using local cache');
+		}
+	}
+
 	return {
 		subscribe,
-		
+		loadFromServer,
+
 		addDeck: (name) => {
+			let saved;
 			update(data => {
-				const newDeck = {
-					id: generateId(),
-					name: name,
-					cards: []
-				};
-				const newData = { decks: [...data.decks, newDeck] };
-				persist(newData);
-				return newData;
+				const newDeck = { id: generateId(), name, cards: [] };
+				saved = { decks: [...data.decks, newDeck] };
+				return saved;
 			});
+			persist(saved);
 		},
-		
+
 		deleteDeck: (deckId) => {
+			let saved;
 			update(data => {
-				const newData = { decks: data.decks.filter(d => d.id !== deckId) };
-				persist(newData);
-				return newData;
+				saved = { decks: data.decks.filter(d => d.id !== deckId) };
+				return saved;
 			});
+			persist(saved);
 		},
-		
+
 		addCard: (deckId, front, back) => {
+			let saved;
 			update(data => {
-				const newCard = {
-					id: generateId(),
-					front: front,
-					back: back
+				const newCard = { id: generateId(), front, back };
+				saved = {
+					decks: data.decks.map(d =>
+						d.id === deckId ? { ...d, cards: [...d.cards, newCard] } : d
+					)
 				};
-				const newData = {
-					decks: data.decks.map(d => {
-						if (d.id === deckId) {
-							return { ...d, cards: [...d.cards, newCard] };
-						}
-						return d;
-					})
-				};
-				persist(newData);
-				return newData;
+				return saved;
 			});
+			persist(saved);
 		},
-		
+
 		deleteCard: (deckId, cardId) => {
+			let saved;
 			update(data => {
-				const newData = {
-					decks: data.decks.map(d => {
-						if (d.id === deckId) {
-							return { ...d, cards: d.cards.filter(c => c.id !== cardId) };
-						}
-						return d;
-					})
+				saved = {
+					decks: data.decks.map(d =>
+						d.id === deckId
+							? { ...d, cards: d.cards.filter(c => c.id !== cardId) }
+							: d
+					)
 				};
-				persist(newData);
-				return newData;
+				return saved;
 			});
+			persist(saved);
 		},
-		
-		getDeck: (deckId) => {
-			let deck = null;
+
+		updateCard: (deckId, cardId, front, back) => {
+			let saved;
 			update(data => {
-				deck = data.decks.find(d => d.id === deckId);
-				return data;
+				saved = {
+					decks: data.decks.map(d =>
+						d.id === deckId
+							? { ...d, cards: d.cards.map(c => c.id === cardId ? { ...c, front, back } : c) }
+							: d
+					)
+				};
+				return saved;
 			});
-			return deck;
+			persist(saved);
 		}
 	};
 }

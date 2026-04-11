@@ -1,29 +1,33 @@
 # Prompt:
-This is my current codebase
+current coebas
 
 # File collection from: /home/nyxox/Documents/Projects/mindre/src
-# Generated: 2026-04-11 21:37:30
+# Generated: 2026-04-11 21:55:31
 ------------------------------------------------------------
 
 ## app.css
 
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
 :root {
 	--bg: #000000;
+	--bg-1: #0a0a0a;
+	--bg-2: #111111;
+	--bg-3: #1a1a1a;
 	--fg: #ffffff;
-	--accent: #00ff00;
-	--accent-dim: #00aa00;
-	--border: #333333;
-	--danger: #ff4444;
-	--placeholder: #666666;
-
+	--fg-2: #cccccc;
+	--fg-3: #888888;
+	--fg-4: #444444;
+	--accent: #00ff88;
+	--accent-dim: rgba(0, 255, 136, 0.15);
+	--accent-glow: rgba(0, 255, 136, 0.4);
+	--border: #222222;
+	--border-2: #333333;
+	--danger: #ff4466;
+	--danger-dim: rgba(255, 68, 102, 0.15);
 	--font: 'JetBrains Mono', monospace;
-
-	--space-xs: 4px;
-	--space-sm: 8px;
-	--space-md: 16px;
-	--space-lg: 24px;
-	--space-xl: 32px;
-	--space-xxl: 48px;
+	--radius: 2px;
+	--transition: 0.15s ease;
 }
 
 *, *::before, *::after {
@@ -32,126 +36,134 @@ This is my current codebase
 	padding: 0;
 }
 
-html, body {
-	height: 100%;
-}
+html { height: 100%; }
 
 body {
 	font-family: var(--font);
-	font-size: 16px;
+	font-size: 14px;
 	line-height: 1.6;
-	background-color: var(--bg);
+	background: var(--bg);
 	color: var(--fg);
+	min-height: 100%;
+	-webkit-font-smoothing: antialiased;
 }
 
 a {
 	color: var(--accent);
 	text-decoration: none;
+	transition: opacity var(--transition);
 }
+a:hover { opacity: 0.8; }
 
-a:hover {
-	text-decoration: underline;
-}
-
+/* ── Buttons ─────────────────────────────────────── */
 button {
 	font-family: var(--font);
-	font-size: 1rem;
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
 	cursor: pointer;
-	border: 1px solid var(--accent);
+	border: 1px solid var(--border-2);
 	background: transparent;
-	color: var(--accent);
-	padding: var(--space-sm) var(--space-md);
-	transition: all 0.2s ease;
+	color: var(--fg-3);
+	padding: 8px 16px;
+	border-radius: var(--radius);
+	transition: all var(--transition);
+	white-space: nowrap;
 }
 
 button:hover {
-	background: var(--accent);
-	color: var(--bg);
-	box-shadow: 0 0 10px var(--accent);
+	border-color: var(--accent);
+	color: var(--accent);
+	background: var(--accent-dim);
 }
 
-button:active {
-	transform: scale(0.98);
-}
+button:active { transform: scale(0.98); }
 
 button:disabled {
-	opacity: 0.3;
+	opacity: 0.25;
 	cursor: not-allowed;
 }
 
 button:disabled:hover {
+	border-color: var(--border-2);
+	color: var(--fg-3);
 	background: transparent;
-	color: var(--accent);
-	box-shadow: none;
 }
 
+button.primary {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+button.primary:hover {
+	background: var(--accent);
+	color: var(--bg);
+	box-shadow: 0 0 20px var(--accent-glow);
+}
+
+button.danger {
+	border-color: transparent;
+	color: var(--fg-4);
+}
+button.danger:hover {
+	border-color: var(--danger);
+	color: var(--danger);
+	background: var(--danger-dim);
+}
+
+/* ── Inputs ──────────────────────────────────────── */
 input, textarea {
 	font-family: var(--font);
-	font-size: 1rem;
-	background: var(--bg);
+	font-size: 13px;
+	background: var(--bg-2);
 	color: var(--fg);
 	border: 1px solid var(--border);
-	padding: var(--space-sm) var(--space-md);
+	padding: 10px 14px;
+	border-radius: var(--radius);
 	outline: none;
-	transition: border-color 0.2s ease;
+	transition: border-color var(--transition), box-shadow var(--transition);
+	width: 100%;
 }
 
 input:focus, textarea:focus {
 	border-color: var(--accent);
-	box-shadow: 0 0 5px var(--accent-dim);
+	box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
 input::placeholder, textarea::placeholder {
-	color: var(--placeholder);
+	color: var(--fg-4);
 }
 
+textarea { resize: vertical; }
+
+/* ── Layout ──────────────────────────────────────── */
 .container {
-	max-width: 900px;
+	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--space-lg);
+	padding: 32px 24px;
 }
 
-h1 {
-	font-size: 2rem;
-	font-weight: 700;
-}
-
-h2 {
-	font-size: 1.5rem;
-	font-weight: 700;
-}
-
-h3 {
-	font-size: 1.25rem;
-}
-
+/* ── Blink cursor ────────────────────────────────── */
 .blink {
-	animation: blink 1s step-end infinite;
+	animation: blink 1.2s step-end infinite;
+	color: var(--accent);
 }
-
 @keyframes blink {
-	0%, 50% { opacity: 1; }
-	51%, 100% { opacity: 0; }
+	0%, 49% { opacity: 1; }
+	50%, 100% { opacity: 0; }
 }
 
-.text-danger {
-	color: var(--danger);
-}
-
-.text-danger:hover {
-	border-color: var(--danger);
-	color: var(--danger);
-	box-shadow: 0 0 10px var(--danger);
-}
+/* ── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
 
 .sr-only {
 	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
+	width: 1px; height: 1px;
+	padding: 0; margin: -1px;
 	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
+	clip: rect(0,0,0,0);
 	white-space: nowrap;
 	border: 0;
 }
@@ -181,104 +193,158 @@ h3 {
 import { writable } from 'svelte/store';
 
 function generateId() {
-	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+	return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
 }
 
 function createFlashcardStore() {
-	const STORAGE_KEY = 'mindre-data';
-	
+	const STORAGE_KEY = 'mindre-cache';
+
+	// Seed from localStorage as instant cache while KV loads
 	let initialData = { decks: [] };
-	
-	if (typeof window !== 'undefined' && window.localStorage) {
-		const stored = localStorage.getItem(STORAGE_KEY);
-		if (stored) {
-			try {
-				initialData = JSON.parse(stored);
-			} catch (e) {
-				console.error('Failed to parse stored data:', e);
-			}
-		}
+	if (typeof window !== 'undefined') {
+		try {
+			const cached = localStorage.getItem(STORAGE_KEY);
+			if (cached) initialData = JSON.parse(cached);
+		} catch {}
 	}
-	
+
 	const { subscribe, set, update } = writable(initialData);
-	
-	function persist(data) {
-		if (typeof window !== 'undefined' && window.localStorage) {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+	let syncing = false;
+
+	// Write to KV (debounced) + update localStorage cache
+	async function persist(data) {
+		if (typeof window === 'undefined') return;
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+		if (syncing) return;
+		syncing = true;
+		try {
+			await fetch('/api/decks', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			});
+		} catch (e) {
+			console.warn('Sync failed, will use local cache:', e);
+		} finally {
+			syncing = false;
 		}
 	}
-	
+
+	// Load from KV on startup
+	async function loadFromServer() {
+		if (typeof window === 'undefined') return;
+		try {
+			const res = await fetch('/api/decks');
+			if (res.ok) {
+				const data = await res.json();
+				set(data);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+			}
+		} catch (e) {
+			console.warn('Could not reach server, using local cache');
+		}
+	}
+
 	return {
 		subscribe,
-		
+		loadFromServer,
+
 		addDeck: (name) => {
+			let saved;
 			update(data => {
-				const newDeck = {
-					id: generateId(),
-					name: name,
-					cards: []
-				};
-				const newData = { decks: [...data.decks, newDeck] };
-				persist(newData);
-				return newData;
+				const newDeck = { id: generateId(), name, cards: [] };
+				saved = { decks: [...data.decks, newDeck] };
+				return saved;
 			});
+			persist(saved);
 		},
-		
+
 		deleteDeck: (deckId) => {
+			let saved;
 			update(data => {
-				const newData = { decks: data.decks.filter(d => d.id !== deckId) };
-				persist(newData);
-				return newData;
+				saved = { decks: data.decks.filter(d => d.id !== deckId) };
+				return saved;
 			});
+			persist(saved);
 		},
-		
+
 		addCard: (deckId, front, back) => {
+			let saved;
 			update(data => {
-				const newCard = {
-					id: generateId(),
-					front: front,
-					back: back
+				const newCard = { id: generateId(), front, back };
+				saved = {
+					decks: data.decks.map(d =>
+						d.id === deckId ? { ...d, cards: [...d.cards, newCard] } : d
+					)
 				};
-				const newData = {
-					decks: data.decks.map(d => {
-						if (d.id === deckId) {
-							return { ...d, cards: [...d.cards, newCard] };
-						}
-						return d;
-					})
-				};
-				persist(newData);
-				return newData;
+				return saved;
 			});
+			persist(saved);
 		},
-		
+
 		deleteCard: (deckId, cardId) => {
+			let saved;
 			update(data => {
-				const newData = {
-					decks: data.decks.map(d => {
-						if (d.id === deckId) {
-							return { ...d, cards: d.cards.filter(c => c.id !== cardId) };
-						}
-						return d;
-					})
+				saved = {
+					decks: data.decks.map(d =>
+						d.id === deckId
+							? { ...d, cards: d.cards.filter(c => c.id !== cardId) }
+							: d
+					)
 				};
-				persist(newData);
-				return newData;
+				return saved;
 			});
+			persist(saved);
 		},
-		
-		getDeck: (deckId) => {
-			let deck = null;
+
+		updateCard: (deckId, cardId, front, back) => {
+			let saved;
 			update(data => {
-				deck = data.decks.find(d => d.id === deckId);
-				return data;
+				saved = {
+					decks: data.decks.map(d =>
+						d.id === deckId
+							? { ...d, cards: d.cards.map(c => c.id === cardId ? { ...c, front, back } : c) }
+							: d
+					)
+				};
+				return saved;
 			});
-			return deck;
+			persist(saved);
 		}
 	};
 }
 
 export const flashcardStore = createFlashcardStore();
+------------------------------------------------------------
+
+## routes/api/decks/+server.js
+
+import { json } from '@sveltejs/kit';
+import { kv } from '@vercel/kv';
+
+const KEY = 'mindre:data';
+
+export async function GET() {
+	try {
+		const data = await kv.get(KEY);
+		return json(data || { decks: [] });
+	} catch (e) {
+		console.error('KV GET error:', e);
+		return json({ decks: [] });
+	}
+}
+
+export async function POST({ request }) {
+	try {
+		const body = await request.json();
+		await kv.set(KEY, body);
+		return json({ ok: true });
+	} catch (e) {
+		console.error('KV POST error:', e);
+		return json({ ok: false }, { status: 500 });
+	}
+}
 ------------------------------------------------------------
 
 ## routes/deck/[id]/+page.svelte
@@ -287,118 +353,179 @@ export const flashcardStore = createFlashcardStore();
 	import { page } from '$app/stores';
 	import { flashcardStore } from '$lib/stores.js';
 	import { onMount } from 'svelte';
-	
+	import { goto } from '$app/navigation';
+
 	let deck = null;
-	let showAddCardForm = false;
+	let showAddForm = false;
 	let cardFront = '';
 	let cardBack = '';
 	let confirmDeleteCard = null;
-	
+	let editingCard = null;
+	let editFront = '';
+	let editBack = '';
+	let frontInput;
+
 	$: deckId = $page.params.id;
-	
+
 	onMount(() => {
-		const unsubscribe = flashcardStore.subscribe(data => {
+		const unsub = flashcardStore.subscribe(data => {
 			deck = data.decks.find(d => d.id === deckId);
 		});
-		return unsubscribe;
+		return unsub;
 	});
-	
+
 	function addCard() {
 		if (cardFront.trim() && cardBack.trim()) {
 			flashcardStore.addCard(deckId, cardFront.trim(), cardBack.trim());
 			cardFront = '';
 			cardBack = '';
-			showAddCardForm = false;
+			showAddForm = false;
 		}
 	}
-	
+
 	function deleteCard(cardId) {
 		if (confirmDeleteCard === cardId) {
 			flashcardStore.deleteCard(deckId, cardId);
 			confirmDeleteCard = null;
 		} else {
 			confirmDeleteCard = cardId;
-			setTimeout(() => {
-				confirmDeleteCard = null;
-			}, 3000);
+			setTimeout(() => { confirmDeleteCard = null; }, 3000);
 		}
 	}
-	
-	function handleKeydown(event) {
-		if (event.key === 'Escape') {
-			showAddCardForm = false;
+
+	function startEdit(card) {
+		editingCard = card.id;
+		editFront = card.front;
+		editBack = card.back;
+	}
+
+	function saveEdit(cardId) {
+		if (editFront.trim() && editBack.trim()) {
+			flashcardStore.updateCard(deckId, cardId, editFront.trim(), editBack.trim());
+		}
+		editingCard = null;
+	}
+
+	function openForm() {
+		showAddForm = true;
+		setTimeout(() => frontInput?.focus(), 50);
+	}
+
+	function handleKey(e) {
+		if (e.key === 'Escape') {
+			showAddForm = false;
 			cardFront = '';
 			cardBack = '';
+			editingCard = null;
 			confirmDeleteCard = null;
 		}
 	}
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={handleKey} />
 
-<div class="deck-view">
+<div class="deck-page">
 	{#if !deck}
-		<p>Deck not found.</p>
+		<p class="not-found">Deck not found. <a href="/">Go home</a></p>
 	{:else}
+		<!-- Header -->
 		<div class="deck-header">
-			<a href="/" class="back-link">&larr; Back</a>
-			<h2>{deck.name}</h2>
+			<a href="/" class="back">← decks</a>
+			<div class="header-main">
+				<h2 class="deck-title">{deck.name}</h2>
+				<span class="deck-badge">{deck.cards.length} card{deck.cards.length !== 1 ? 's' : ''}</span>
+			</div>
 		</div>
-		
-		<div class="actions">
+
+		<!-- Actions row -->
+		<div class="actions-row">
 			{#if deck.cards.length > 0}
-				<a href="/study/{deckId}" class="study-btn">Study</a>
+				<a href="/study/{deckId}" class="study-link">
+					<span>▶ study</span>
+				</a>
 			{/if}
-			
-			{#if !showAddCardForm}
-				<button on:click={() => showAddCardForm = true}>
-					+ Add Card
-				</button>
-			{:else}
-				<div class="add-card-form">
-					<textarea
-						bind:value={cardFront}
-						placeholder="Front (question)..."
-						rows="2"
-						autofocus
-					></textarea>
-					<textarea
-						bind:value={cardBack}
-						placeholder="Back (answer)..."
-						rows="2"
-					></textarea>
-					<div class="form-actions">
-						<button on:click={addCard}>Add</button>
-						<button on:click={() => { showAddCardForm = false; cardFront = ''; cardBack = ''; }}>
-							Cancel
-						</button>
+			<button class="primary" on:click={openForm}>+ add card</button>
+		</div>
+
+		<!-- Add card form -->
+		{#if showAddForm}
+			<div class="add-form">
+				<div class="form-label">new card</div>
+				<div class="form-row">
+					<div class="form-field">
+						<label class="field-label">front</label>
+						<textarea
+							bind:this={frontInput}
+							bind:value={cardFront}
+							placeholder="Question or term..."
+							rows="3"
+						></textarea>
+					</div>
+					<div class="form-divider">→</div>
+					<div class="form-field">
+						<label class="field-label">back</label>
+						<textarea
+							bind:value={cardBack}
+							placeholder="Answer or definition..."
+							rows="3"
+						></textarea>
 					</div>
 				</div>
-			{/if}
-		</div>
-		
-		{#if deck.cards.length === 0 && !showAddCardForm}
-			<div class="empty-state">
-				<p>No cards yet. Add some cards to start studying.</p>
+				<div class="form-actions">
+					<button class="primary" on:click={addCard} disabled={!cardFront.trim() || !cardBack.trim()}>
+						add card
+					</button>
+					<button on:click={() => { showAddForm = false; cardFront = ''; cardBack = ''; }}>cancel</button>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Card list -->
+		{#if deck.cards.length === 0 && !showAddForm}
+			<div class="empty">
+				<span class="empty-icon">[ empty ]</span>
+				<p>No cards yet. Add your first card above.</p>
 			</div>
 		{:else}
 			<div class="card-list">
-				{#each deck.cards as card, index (card.id)}
-					<div class="card-item">
-						<div class="card-content">
-							<span class="card-num">{index + 1}.</span>
-							<div class="card-text">
-								<p class="card-front"><strong>Front:</strong> {card.front}</p>
-								<p class="card-back"><strong>Back:</strong> {card.back}</p>
+				{#each deck.cards as card, i (card.id)}
+					<div class="card-row" class:editing={editingCard === card.id}>
+						<div class="card-num">{String(i + 1).padStart(2, '0')}</div>
+
+						{#if editingCard === card.id}
+							<div class="card-edit">
+								<textarea bind:value={editFront} rows="2" placeholder="Front..."></textarea>
+								<span class="edit-arrow">→</span>
+								<textarea bind:value={editBack} rows="2" placeholder="Back..."></textarea>
+								<div class="edit-actions">
+									<button class="primary" on:click={() => saveEdit(card.id)}>save</button>
+									<button on:click={() => editingCard = null}>cancel</button>
+								</div>
 							</div>
-						</div>
-						<button 
-							class="delete-card-btn"
-							class:confirm={confirmDeleteCard === card.id}
-							on:click={() => deleteCard(card.id)}
-						>
-							{confirmDeleteCard === card.id ? 'Confirm?' : 'Delete'}
-						</button>
+						{:else}
+							<div class="card-content">
+								<div class="card-side">
+									<span class="side-label">F</span>
+									<span class="side-text">{card.front}</span>
+								</div>
+								<div class="card-sep">→</div>
+								<div class="card-side back">
+									<span class="side-label">B</span>
+									<span class="side-text">{card.back}</span>
+								</div>
+							</div>
+							<div class="card-actions">
+								<button class="icon-btn" on:click={() => startEdit(card)} title="Edit">✎</button>
+								<button
+									class="icon-btn danger-btn"
+									class:confirming={confirmDeleteCard === card.id}
+									on:click={() => deleteCard(card.id)}
+									title="Delete"
+								>
+									{confirmDeleteCard === card.id ? '?' : '×'}
+								</button>
+							</div>
+						{/if}
 					</div>
 				{/each}
 			</div>
@@ -407,133 +534,310 @@ export const flashcardStore = createFlashcardStore();
 </div>
 
 <style>
-	.deck-view {
+	.deck-page {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-lg);
+		gap: 28px;
 	}
-	
+
+	.not-found { color: var(--fg-3); }
+
+	/* ── Header ──────────────────────────────── */
 	.deck-header {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-md);
+		gap: 10px;
 	}
-	
-	.back-link {
-		color: var(--placeholder);
-		font-size: 0.875rem;
+
+	.back {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--fg-4);
+		text-decoration: none;
+		transition: color 0.15s;
 	}
-	
-	.back-link:hover {
+	.back:hover { color: var(--accent); }
+
+	.header-main {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		flex-wrap: wrap;
+	}
+
+	.deck-title {
+		font-size: 22px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--fg);
+	}
+
+	.deck-badge {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--accent);
+		border: 1px solid var(--accent);
+		padding: 2px 8px;
+		border-radius: var(--radius);
+	}
+
+	/* ── Actions row ─────────────────────────── */
+	.actions-row {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	.study-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-family: var(--font);
+		font-size: 12px;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--bg);
+		background: var(--accent);
+		border: 1px solid var(--accent);
+		padding: 8px 16px;
+		border-radius: var(--radius);
+		text-decoration: none;
+		transition: box-shadow 0.15s, opacity 0.15s;
+	}
+	.study-link:hover {
+		box-shadow: 0 0 20px var(--accent-glow);
+		opacity: 0.9;
+		text-decoration: none;
+	}
+
+	/* ── Add form ────────────────────────────── */
+	.add-form {
+		border: 1px solid var(--border-2);
+		border-radius: var(--radius);
+		padding: 20px;
+		background: var(--bg-1);
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+
+	.form-label {
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
 		color: var(--accent);
 	}
-	
-	.actions {
+
+	.form-row {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		gap: 12px;
+		align-items: start;
+	}
+
+	@media (max-width: 600px) {
+		.form-row {
+			grid-template-columns: 1fr;
+		}
+		.form-divider { display: none; }
+	}
+
+	.form-field {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-md);
+		gap: 6px;
 	}
-	
-	.study-btn {
-		display: inline-block;
-		text-align: center;
-		background: var(--accent);
-		color: var(--bg);
-		padding: var(--space-sm) var(--space-md);
-		text-decoration: none;
+
+	.field-label {
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--fg-4);
 	}
-	
-	.study-btn:hover {
-		box-shadow: 0 0 10px var(--accent);
-		text-decoration: none;
+
+	.form-divider {
+		color: var(--fg-4);
+		padding-top: 28px;
+		font-size: 14px;
 	}
-	
-	.add-card-form {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-sm);
-		padding: var(--space-md);
-		border: 1px solid var(--border);
-	}
-	
-	.add-card-form textarea {
-		resize: vertical;
-		min-height: 60px;
-	}
-	
+
 	.form-actions {
 		display: flex;
-		gap: var(--space-sm);
+		gap: 8px;
 	}
-	
-	.empty-state {
-		color: var(--placeholder);
-		padding: var(--space-xl);
+
+	/* ── Empty ───────────────────────────────── */
+	.empty {
+		padding: 60px 0;
 		text-align: center;
-		border: 1px dashed var(--border);
+		color: var(--fg-4);
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		align-items: center;
 	}
-	
+	.empty-icon {
+		font-size: 20px;
+		letter-spacing: 4px;
+	}
+
+	/* ── Card list ───────────────────────────── */
 	.card-list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-sm);
-	}
-	
-	.card-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		gap: var(--space-md);
-		padding: var(--space-md);
+		gap: 0;
 		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		overflow: hidden;
 	}
-	
-	.card-content {
+
+	.card-row {
 		display: flex;
-		gap: var(--space-md);
+		align-items: stretch;
+		gap: 0;
+		border-bottom: 1px solid var(--border);
+		background: var(--bg-1);
+		transition: background 0.15s;
+		min-height: 56px;
+	}
+
+	.card-row:last-child { border-bottom: none; }
+	.card-row:hover { background: var(--bg-2); }
+	.card-row.editing { background: var(--bg-2); }
+
+	.card-num {
+		font-size: 10px;
+		color: var(--fg-4);
+		padding: 16px 14px;
+		border-right: 1px solid var(--border);
+		min-width: 46px;
+		display: flex;
+		align-items: flex-start;
+		letter-spacing: 0.05em;
+	}
+
+	.card-content {
 		flex: 1;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		gap: 0;
 		min-width: 0;
 	}
-	
-	.card-num {
-		color: var(--placeholder);
+
+	@media (max-width: 600px) {
+		.card-content {
+			grid-template-columns: 1fr;
+		}
+		.card-sep { display: none; }
+	}
+
+	.card-side {
+		display: flex;
+		align-items: flex-start;
+		gap: 10px;
+		padding: 14px 16px;
+		min-width: 0;
+	}
+
+	.card-side.back {
+		border-left: 1px solid var(--border);
+	}
+
+	.side-label {
+		font-size: 9px;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--fg-4);
+		padding-top: 2px;
 		flex-shrink: 0;
 	}
-	
-	.card-text {
-		flex: 1;
-		min-width: 0;
-	}
-	
-	.card-front, .card-back {
+
+	.side-text {
+		font-size: 13px;
+		color: var(--fg-2);
 		word-break: break-word;
+		line-height: 1.5;
 	}
-	
-	.card-front {
-		margin-bottom: var(--space-xs);
+
+	.card-sep {
+		color: var(--fg-4);
+		padding: 14px 10px;
+		font-size: 12px;
+		display: flex;
+		align-items: flex-start;
+		padding-top: 16px;
 	}
-	
-	.card-back {
-		color: var(--placeholder);
+
+	.card-actions {
+		display: flex;
+		align-items: flex-start;
+		gap: 4px;
+		padding: 10px;
+		border-left: 1px solid var(--border);
+		opacity: 0;
+		transition: opacity 0.15s;
 	}
-	
-	.delete-card-btn {
-		font-size: 0.875rem;
-		padding: var(--space-xs) var(--space-sm);
+
+	.card-row:hover .card-actions { opacity: 1; }
+
+	.icon-btn {
+		padding: 5px 8px;
+		font-size: 13px;
+		color: var(--fg-4);
+		border-color: transparent;
+	}
+
+	.icon-btn:hover {
+		color: var(--accent);
+		border-color: var(--accent);
+		background: var(--accent-dim);
+	}
+
+	.danger-btn:hover {
+		color: var(--danger) !important;
+		border-color: var(--danger) !important;
+		background: var(--danger-dim) !important;
+	}
+
+	.danger-btn.confirming {
 		color: var(--danger);
 		border-color: var(--danger);
-		flex-shrink: 0;
+		background: var(--danger-dim);
+		opacity: 1;
 	}
-	
-	.delete-card-btn:hover {
-		background: var(--danger);
-		color: var(--bg);
-		box-shadow: 0 0 10px var(--danger);
+
+	/* ── Edit mode ───────────────────────────── */
+	.card-edit {
+		flex: 1;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr auto;
+		gap: 10px;
+		align-items: start;
+		padding: 12px 14px;
 	}
-	
-	.delete-card-btn.confirm {
-		background: var(--danger);
-		color: var(--bg);
+
+	@media (max-width: 600px) {
+		.card-edit {
+			grid-template-columns: 1fr;
+		}
+		.edit-arrow { display: none; }
+	}
+
+	.edit-arrow {
+		color: var(--fg-4);
+		padding-top: 12px;
+		font-size: 12px;
+	}
+
+	.edit-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		padding-top: 2px;
 	}
 </style>
 ------------------------------------------------------------
@@ -546,38 +850,60 @@ export const flashcardStore = createFlashcardStore();
 
 <div class="container">
 	<header>
-		<a href="/" class="logo">
-			<h1>mindre<span class="blink">_</span></h1>
+		<a href="/" class="wordmark">
+			<span class="wordmark-text">mindre</span><span class="blink">_</span>
 		</a>
+		<p class="tagline">flashcard study tool</p>
 	</header>
-	
+
 	<main>
 		<slot />
 	</main>
+
+	<footer>
+		<span>↑↓←→ navigate · space flip · esc back</span>
+	</footer>
 </div>
 
 <style>
 	header {
-		margin-bottom: var(--space-xxl);
-		padding-bottom: var(--space-lg);
+		padding-bottom: 32px;
+		margin-bottom: 48px;
 		border-bottom: 1px solid var(--border);
+		display: flex;
+		align-items: baseline;
+		gap: 20px;
 	}
-	
-	.logo {
+
+	.wordmark {
+		font-size: 22px;
+		font-weight: 700;
 		color: var(--fg);
+		letter-spacing: -0.02em;
 		text-decoration: none;
 	}
-	
-	.logo:hover {
-		text-decoration: none;
+
+	.wordmark-text { color: var(--fg); }
+
+	.tagline {
+		font-size: 11px;
+		color: var(--fg-4);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
 	}
-	
-	.logo h1 {
-		display: inline;
-	}
-	
+
 	main {
-		min-height: calc(100vh - 150px);
+		min-height: calc(100vh - 200px);
+	}
+
+	footer {
+		margin-top: 64px;
+		padding-top: 20px;
+		border-top: 1px solid var(--border);
+		font-size: 10px;
+		color: var(--fg-4);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 	}
 </style>
 ------------------------------------------------------------
@@ -585,17 +911,25 @@ export const flashcardStore = createFlashcardStore();
 ## routes/+page.svelte
 
 <script>
+	import { onMount } from 'svelte';
 	import { flashcardStore } from '$lib/stores.js';
-	
+
+	let decks = [];
 	let showNewDeckForm = false;
 	let newDeckName = '';
-	let decks = [];
 	let confirmDelete = null;
-	
+	let loading = true;
+	let inputEl;
+
 	flashcardStore.subscribe(data => {
 		decks = data.decks;
 	});
-	
+
+	onMount(async () => {
+		await flashcardStore.loadFromServer();
+		loading = false;
+	});
+
 	function createDeck() {
 		if (newDeckName.trim()) {
 			flashcardStore.addDeck(newDeckName.trim());
@@ -603,84 +937,95 @@ export const flashcardStore = createFlashcardStore();
 			showNewDeckForm = false;
 		}
 	}
-	
+
 	function deleteDeck(id) {
 		if (confirmDelete === id) {
 			flashcardStore.deleteDeck(id);
 			confirmDelete = null;
 		} else {
 			confirmDelete = id;
-			setTimeout(() => {
-				confirmDelete = null;
-			}, 3000);
+			setTimeout(() => { confirmDelete = null; }, 3000);
 		}
 	}
-	
-	function handleKeydown(event) {
-		if (event.key === 'Enter' && newDeckName.trim()) {
-			createDeck();
-		}
-		if (event.key === 'Escape') {
-			showNewDeckForm = false;
-			newDeckName = '';
-			confirmDelete = null;
-		}
+
+	function openForm() {
+		showNewDeckForm = true;
+		setTimeout(() => inputEl?.focus(), 50);
+	}
+
+	function handleKey(e) {
+		if (e.key === 'Enter' && newDeckName.trim()) createDeck();
+		if (e.key === 'Escape') { showNewDeckForm = false; newDeckName = ''; }
 	}
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={handleKey} />
 
 <div class="home">
-	<div class="actions">
+	<!-- Top bar -->
+	<div class="topbar">
+		<div class="stats">
+			{#if !loading}
+				<span class="stat">
+					<span class="stat-val">{decks.length}</span>
+					<span class="stat-label">deck{decks.length !== 1 ? 's' : ''}</span>
+				</span>
+				<span class="sep">/</span>
+				<span class="stat">
+					<span class="stat-val">{decks.reduce((a, d) => a + d.cards.length, 0)}</span>
+					<span class="stat-label">cards</span>
+				</span>
+			{/if}
+		</div>
+
 		{#if !showNewDeckForm}
-			<button on:click={() => showNewDeckForm = true}>
-				+ New Deck
-			</button>
+			<button class="primary" on:click={openForm}>+ new deck</button>
 		{:else}
-			<div class="new-deck-form">
+			<div class="inline-form">
 				<input
-					type="text"
+					bind:this={inputEl}
 					bind:value={newDeckName}
-					placeholder="Deck name..."
-					autofocus
+					placeholder="deck name..."
+					maxlength="60"
 				/>
-				<button on:click={createDeck}>Create</button>
-				<button on:click={() => { showNewDeckForm = false; newDeckName = ''; }}>
-					Cancel
-				</button>
+				<button class="primary" on:click={createDeck} disabled={!newDeckName.trim()}>create</button>
+				<button on:click={() => { showNewDeckForm = false; newDeckName = ''; }}>cancel</button>
 			</div>
 		{/if}
 	</div>
-	
-	{#if decks.length === 0}
-		<div class="empty-state">
-			<p>No decks yet. Create one.</p>
+
+	<!-- Content -->
+	{#if loading}
+		<div class="loading">
+			<span class="dot-anim">loading<span class="blink">_</span></span>
+		</div>
+	{:else if decks.length === 0}
+		<div class="empty">
+			<div class="empty-icon">[ ]</div>
+			<p>No decks yet.</p>
+			<p class="empty-sub">Create a deck to start studying.</p>
 		</div>
 	{:else}
 		<div class="deck-grid">
 			{#each decks as deck (deck.id)}
-				<a href="/deck/{deck.id}" class="deck-card">
-					<h3>{deck.name}</h3>
-					<p class="card-count">{deck.cards.length} card{deck.cards.length !== 1 ? 's' : ''}</p>
-				</a>
-			{/each}
-		</div>
-	{/if}
-	
-	{#if decks.length > 0}
-		<div class="deck-list">
-			{#each decks as deck (deck.id)}
-				<div class="deck-item">
-					<a href="/deck/{deck.id}" class="deck-link">
-						<span class="deck-name">{deck.name}</span>
-						<span class="deck-count">({deck.cards.length})</span>
+				<div class="deck-card-wrap">
+					<a href="/deck/{deck.id}" class="deck-card">
+						<div class="deck-card-inner">
+							<div class="deck-name">{deck.name}</div>
+							<div class="deck-meta">
+								<span class="deck-count">{deck.cards.length}</span>
+								<span class="deck-count-label"> card{deck.cards.length !== 1 ? 's' : ''}</span>
+							</div>
+						</div>
+						<div class="deck-arrow">→</div>
 					</a>
-					<button 
-						class="delete-btn" 
-						class:confirm={confirmDelete === deck.id}
+					<button
+						class="danger deck-delete"
+						class:confirming={confirmDelete === deck.id}
 						on:click|preventDefault={() => deleteDeck(deck.id)}
+						title="Delete deck"
 					>
-						{confirmDelete === deck.id ? 'Confirm?' : 'Delete'}
+						{confirmDelete === deck.id ? 'confirm?' : '×'}
 					</button>
 				</div>
 			{/each}
@@ -692,117 +1037,144 @@ export const flashcardStore = createFlashcardStore();
 	.home {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-lg);
+		gap: 32px;
 	}
-	
-	.actions {
+
+	/* ── Topbar ──────────────────────────────── */
+	.topbar {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
 		flex-wrap: wrap;
-		gap: var(--space-md);
 	}
-	
-	.new-deck-form {
+
+	.stats {
 		display: flex;
-		gap: var(--space-sm);
-		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px;
+		font-size: 13px;
+		color: var(--fg-3);
 	}
-	
-	.new-deck-form input {
+
+	.stat { display: flex; align-items: baseline; gap: 5px; }
+	.stat-val { font-size: 20px; font-weight: 700; color: var(--fg); }
+	.stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+	.sep { color: var(--border-2); }
+
+	.inline-form {
+		display: flex;
+		gap: 8px;
 		flex: 1;
-		min-width: 200px;
+		max-width: 480px;
+		align-items: center;
 	}
-	
-	.empty-state {
-		color: var(--placeholder);
-		padding: var(--space-xl);
+
+	.inline-form input {
+		flex: 1;
+	}
+
+	/* ── Loading ─────────────────────────────── */
+	.loading {
+		padding: 60px 0;
+		color: var(--fg-4);
+		font-size: 12px;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	/* ── Empty ───────────────────────────────── */
+	.empty {
+		padding: 80px 0;
 		text-align: center;
-		border: 1px dashed var(--border);
+		color: var(--fg-4);
 	}
-	
+
+	.empty-icon {
+		font-size: 32px;
+		margin-bottom: 16px;
+		color: var(--fg-4);
+		letter-spacing: 6px;
+	}
+
+	.empty p { margin-bottom: 4px; }
+	.empty-sub { font-size: 12px; color: var(--fg-4); }
+
+	/* ── Deck Grid ───────────────────────────── */
 	.deck-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-		gap: var(--space-md);
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 12px;
 	}
-	
+
+	.deck-card-wrap {
+		position: relative;
+	}
+
 	.deck-card {
-		display: block;
-		padding: var(--space-lg);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 20px;
 		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--bg-1);
 		text-decoration: none;
-		transition: all 0.2s ease;
+		transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+		min-height: 90px;
 	}
-	
+
 	.deck-card:hover {
 		border-color: var(--accent);
-		box-shadow: 0 0 10px var(--accent-dim);
+		background: var(--bg-2);
+		box-shadow: 0 0 24px var(--accent-dim);
 		text-decoration: none;
 	}
-	
-	.deck-card h3 {
-		margin-bottom: var(--space-sm);
-		word-break: break-word;
-	}
-	
-	.card-count {
-		color: var(--placeholder);
-		font-size: 0.875rem;
-	}
-	
-	.deck-list {
-		margin-top: var(--space-xl);
-		border-top: 1px solid var(--border);
-		padding-top: var(--space-lg);
-	}
-	
-	.deck-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: var(--space-sm) 0;
-		border-bottom: 1px solid var(--border);
-	}
-	
-	.deck-link {
-		display: flex;
-		align-items: center;
-		gap: var(--space-sm);
-		flex: 1;
-		color: var(--fg);
-		text-decoration: none;
-	}
-	
-	.deck-link:hover {
-		color: var(--accent);
-		text-decoration: none;
-	}
-	
+
+	.deck-card-inner { flex: 1; min-width: 0; }
+
 	.deck-name {
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--fg);
+		margin-bottom: 8px;
 		word-break: break-word;
+		line-height: 1.4;
 	}
-	
-	.deck-count {
-		color: var(--placeholder);
-		font-size: 0.875rem;
+
+	.deck-meta { display: flex; align-items: baseline; gap: 3px; }
+	.deck-count { font-size: 18px; font-weight: 700; color: var(--accent); }
+	.deck-count-label { font-size: 10px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.06em; }
+
+	.deck-arrow {
+		color: var(--fg-4);
+		font-size: 16px;
+		margin-left: 12px;
+		transition: color 0.15s, transform 0.15s;
 	}
-	
-	.delete-btn {
-		font-size: 0.875rem;
-		padding: var(--space-xs) var(--space-sm);
-		color: var(--danger);
-		border-color: var(--danger);
+
+	.deck-card:hover .deck-arrow {
+		color: var(--accent);
+		transform: translateX(3px);
 	}
-	
-	.delete-btn:hover {
-		background: var(--danger);
-		color: var(--bg);
-		box-shadow: 0 0 10px var(--danger);
+
+	.deck-delete {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		padding: 3px 7px;
+		font-size: 12px;
+		opacity: 0;
+		transition: opacity 0.15s;
+		border-radius: var(--radius);
 	}
-	
-	.delete-btn.confirm {
-		background: var(--danger);
-		color: var(--bg);
+
+	.deck-card-wrap:hover .deck-delete { opacity: 1; }
+	.deck-delete.confirming {
+		opacity: 1;
+		border-color: var(--danger) !important;
+		color: var(--danger) !important;
+		background: var(--danger-dim) !important;
 	}
 </style>
 ------------------------------------------------------------
@@ -813,228 +1185,435 @@ export const flashcardStore = createFlashcardStore();
 	import { page } from '$app/stores';
 	import { flashcardStore } from '$lib/stores.js';
 	import { onMount } from 'svelte';
-	
+
 	let deck = null;
 	let currentIndex = 0;
 	let isFlipped = false;
-	
+	let shuffled = false;
+	let cards = [];
+	let done = false;
+
 	$: deckId = $page.params.id;
-	$: currentCard = deck?.cards[currentIndex] || null;
-	$: totalCards = deck?.cards.length || 0;
-	
+	$: currentCard = cards[currentIndex] || null;
+	$: total = cards.length;
+	$: progress = total > 0 ? ((currentIndex + (isFlipped ? 0.5 : 0)) / total) * 100 : 0;
+
 	onMount(() => {
-		const unsubscribe = flashcardStore.subscribe(data => {
+		const unsub = flashcardStore.subscribe(data => {
 			deck = data.decks.find(d => d.id === deckId);
+			if (deck) cards = [...deck.cards];
 		});
-		return unsubscribe;
+		return unsub;
 	});
-	
-	function flipCard() {
+
+	function shuffle() {
+		cards = [...cards].sort(() => Math.random() - 0.5);
+		currentIndex = 0;
+		isFlipped = false;
+		done = false;
+		shuffled = true;
+	}
+
+	function reset() {
+		cards = deck ? [...deck.cards] : [];
+		currentIndex = 0;
+		isFlipped = false;
+		done = false;
+		shuffled = false;
+	}
+
+	function flip() {
 		isFlipped = !isFlipped;
 	}
-	
-	function prevCard() {
+
+	function prev() {
 		if (currentIndex > 0) {
 			currentIndex--;
 			isFlipped = false;
+			done = false;
 		}
 	}
-	
-	function nextCard() {
-		if (currentIndex < totalCards - 1) {
+
+	function next() {
+		if (currentIndex < total - 1) {
 			currentIndex++;
 			isFlipped = false;
+		} else if (!done) {
+			done = true;
 		}
 	}
-	
-	function handleKeydown(event) {
-		if (event.key === ' ' || event.key === 'Spacebar') {
-			event.preventDefault();
-			flipCard();
-		} else if (event.key === 'ArrowLeft') {
-			prevCard();
-		} else if (event.key === 'ArrowRight') {
-			nextCard();
-		} else if (event.key === 'Escape') {
-			window.location.href = `/deck/${deckId}`;
+
+	function handleKey(e) {
+		if (done) {
+			if (e.key === 'r' || e.key === 'R') reset();
+			return;
 		}
+		if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); flip(); }
+		else if (e.key === 'ArrowLeft') prev();
+		else if (e.key === 'ArrowRight') next();
+		else if (e.key === 'Escape') window.location.href = `/deck/${deckId}`;
 	}
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={handleKey} />
 
-<div class="study-mode">
+<div class="study-page">
 	{#if !deck || deck.cards.length === 0}
-		<div class="empty-state">
+		<div class="empty">
 			<p>No cards to study.</p>
-			<a href="/deck/{deckId}">Back to deck</a>
+			<a href="/deck/{deckId}">← back to deck</a>
+		</div>
+	{:else if done}
+		<!-- Done screen -->
+		<div class="done-screen">
+			<div class="done-icon">✓</div>
+			<h2>Done!</h2>
+			<p class="done-sub">You studied all {total} card{total !== 1 ? 's' : ''}.</p>
+			<div class="done-actions">
+				<button class="primary" on:click={reset}>restart</button>
+				<button on:click={shuffle}>shuffle</button>
+				<a href="/deck/{deckId}" class="done-back">← back to deck</a>
+			</div>
 		</div>
 	{:else}
-		<div class="study-header">
-			<a href="/deck/{deckId}" class="exit-btn">&larr; Exit</a>
-			<span class="progress">Card {currentIndex + 1} / {totalCards}</span>
+		<!-- Progress bar -->
+		<div class="progress-bar-wrap">
+			<div class="progress-bar">
+				<div class="progress-fill" style="width: {(currentIndex / total) * 100}%"></div>
+			</div>
 		</div>
-		
-		<div class="flashcard-container" on:click={flipCard} on:keydown={flipCard} role="button" tabindex="0">
-			<div class="flashcard" class:flipped={isFlipped}>
-				<div class="card-face card-front">
-					<p>{currentCard.front}</p>
+
+		<!-- Header -->
+		<div class="study-header">
+			<a href="/deck/{deckId}" class="exit">← exit</a>
+			<div class="study-info">
+				<span class="deck-name-label">{deck.name}</span>
+				<span class="counter">{currentIndex + 1} <span class="counter-sep">/</span> {total}</span>
+			</div>
+			<button class="shuffle-btn" on:click={shuffle} title="Shuffle cards">
+				{shuffled ? '✓ shuffled' : '⇄ shuffle'}
+			</button>
+		</div>
+
+		<!-- Card -->
+		<div
+			class="card-scene"
+			on:click={flip}
+			on:keydown={e => e.key === 'Enter' && flip()}
+			role="button"
+			tabindex="0"
+			aria-label="Flashcard — click to flip"
+		>
+			<div class="card-3d" class:flipped={isFlipped}>
+				<div class="card-face front">
+					<span class="face-label">front</span>
+					<p class="card-text">{currentCard?.front}</p>
+					<span class="flip-hint">click to reveal →</span>
 				</div>
-				<div class="card-face card-back">
-					<p>{currentCard.back}</p>
+				<div class="card-face back">
+					<span class="face-label">back</span>
+					<p class="card-text">{currentCard?.back}</p>
+					<span class="flip-hint">← click to flip back</span>
 				</div>
 			</div>
 		</div>
-		
+
+		<!-- Controls -->
 		<div class="controls">
-			<button on:click={prevCard} disabled={currentIndex === 0}>
-				&larr; Previous
-			</button>
-			<span class="hint">Click card or press Space to flip</span>
-			<button on:click={nextCard} disabled={currentIndex === totalCards - 1}>
-				Next &rarr;
+			<button on:click={prev} disabled={currentIndex === 0}>← prev</button>
+			<div class="dots">
+				{#each cards as _, i}
+					<span
+						class="dot"
+						class:active={i === currentIndex}
+						class:past={i < currentIndex}
+					></span>
+				{/each}
+			</div>
+			<button class="primary" on:click={next}>
+				{currentIndex === total - 1 ? 'finish ✓' : 'next →'}
 			</button>
 		</div>
-		
-		<div class="keyboard-hints">
-			<span>&larr; Prev</span>
-			<span>Space: Flip</span>
-			<span>Next &rarr;</span>
+
+		<!-- Keyboard hints -->
+		<div class="kbd-hints">
+			<kbd>←</kbd> prev
+			<kbd>space</kbd> flip
+			<kbd>→</kbd> next
+			<kbd>esc</kbd> exit
 		</div>
 	{/if}
 </div>
 
 <style>
-	.study-mode {
+	.study-page {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		gap: 24px;
+		min-height: calc(100vh - 220px);
 		justify-content: center;
-		min-height: calc(100vh - 200px);
-		gap: var(--space-lg);
 	}
-	
-	.empty-state {
-		text-align: center;
-		color: var(--placeholder);
+
+	/* ── Progress bar ────────────────────────── */
+	.progress-bar-wrap {
+		width: 100%;
+		max-width: 600px;
 	}
-	
-	.empty-state a {
-		color: var(--accent);
+
+	.progress-bar {
+		height: 2px;
+		background: var(--border);
+		border-radius: 1px;
+		overflow: hidden;
 	}
-	
+
+	.progress-fill {
+		height: 100%;
+		background: var(--accent);
+		border-radius: 1px;
+		transition: width 0.3s ease;
+	}
+
+	/* ── Header ──────────────────────────────── */
 	.study-header {
 		width: 100%;
-		max-width: 500px;
+		max-width: 600px;
 		display: flex;
-		justify-content: space-between;
 		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
 	}
-	
-	.exit-btn {
-		color: var(--placeholder);
-		font-size: 0.875rem;
+
+	.exit {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--fg-4);
+		text-decoration: none;
+		transition: color 0.15s;
+		white-space: nowrap;
 	}
-	
-	.exit-btn:hover {
-		color: var(--accent);
+	.exit:hover { color: var(--accent); }
+
+	.study-info {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
 	}
-	
-	.progress {
-		color: var(--accent);
+
+	.deck-name-label {
+		font-size: 11px;
+		color: var(--fg-4);
+		letter-spacing: 0.06em;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+		max-width: 200px;
+	}
+
+	.counter {
+		font-size: 13px;
 		font-weight: 700;
+		color: var(--fg);
+		letter-spacing: 0.04em;
 	}
-	
-	.flashcard-container {
-		perspective: 1000px;
+	.counter-sep { color: var(--fg-4); }
+
+	.shuffle-btn {
+		font-size: 10px;
+		padding: 5px 10px;
+		white-space: nowrap;
+	}
+
+	/* ── 3D Card ─────────────────────────────── */
+	.card-scene {
+		perspective: 1200px;
 		width: 100%;
-		max-width: 500px;
-		height: 300px;
+		max-width: 600px;
+		height: 320px;
 		cursor: pointer;
+		outline: none;
 	}
-	
-	.flashcard {
+
+	.card-scene:focus-visible .card-3d {
+		box-shadow: 0 0 0 2px var(--accent);
+	}
+
+	.card-3d {
 		width: 100%;
 		height: 100%;
 		position: relative;
 		transform-style: preserve-3d;
-		transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+		transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+		border-radius: var(--radius);
 	}
-	
-	.flashcard.flipped {
-		transform: rotateY(180deg);
-	}
-	
+
+	.card-3d.flipped { transform: rotateY(180deg); }
+
 	.card-face {
 		position: absolute;
-		width: 100%;
-		height: 100%;
+		inset: 0;
 		backface-visibility: hidden;
 		-webkit-backface-visibility: hidden;
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		padding: var(--space-lg);
-		border: 1px solid var(--accent);
-		background: var(--bg);
+		padding: 40px;
+		border-radius: var(--radius);
+		background: var(--bg-1);
+		border: 1px solid var(--border-2);
+		gap: 16px;
 	}
-	
-	.card-front {
-		border-color: var(--accent);
-	}
-	
-	.card-back {
+
+	.card-face.front { border-color: var(--accent); }
+	.card-face.back {
 		transform: rotateY(180deg);
-		border-color: var(--accent-dim);
+		border-color: var(--border-2);
+		background: var(--bg-2);
 	}
-	
-	.card-face p {
+
+	.face-label {
+		position: absolute;
+		top: 14px;
+		left: 18px;
+		font-size: 9px;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		color: var(--fg-4);
+	}
+
+	.card-face.front .face-label { color: var(--accent); }
+
+	.card-text {
+		font-size: 18px;
+		line-height: 1.5;
 		text-align: center;
 		word-break: break-word;
-		font-size: 1.25rem;
+		color: var(--fg);
+		max-width: 480px;
 	}
-	
+
+	.flip-hint {
+		position: absolute;
+		bottom: 14px;
+		font-size: 10px;
+		letter-spacing: 0.08em;
+		color: var(--fg-4);
+		text-transform: uppercase;
+	}
+
+	/* ── Controls ────────────────────────────── */
 	.controls {
 		display: flex;
 		align-items: center;
-		gap: var(--space-lg);
+		gap: 16px;
+		width: 100%;
+		max-width: 600px;
+	}
+
+	.controls button { min-width: 90px; }
+
+	.dots {
+		flex: 1;
+		display: flex;
+		gap: 5px;
+		justify-content: center;
+		flex-wrap: wrap;
+		max-height: 32px;
+		overflow: hidden;
+	}
+
+	.dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--border-2);
+		transition: background 0.2s;
+		flex-shrink: 0;
+	}
+
+	.dot.active { background: var(--accent); }
+	.dot.past { background: var(--fg-4); }
+
+	/* ── Keyboard hints ──────────────────────── */
+	.kbd-hints {
+		display: flex;
+		gap: 16px;
+		font-size: 10px;
+		color: var(--fg-4);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		align-items: center;
+	}
+
+	kbd {
+		background: var(--bg-2);
+		border: 1px solid var(--border-2);
+		border-radius: 2px;
+		padding: 1px 5px;
+		font-family: var(--font);
+		font-size: 10px;
+		color: var(--fg-3);
+	}
+
+	/* ── Done screen ─────────────────────────── */
+	.done-screen {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
+		text-align: center;
+	}
+
+	.done-icon {
+		font-size: 40px;
+		color: var(--accent);
+		animation: pop 0.4s ease;
+	}
+
+	@keyframes pop {
+		0% { transform: scale(0.5); opacity: 0; }
+		70% { transform: scale(1.2); }
+		100% { transform: scale(1); opacity: 1; }
+	}
+
+	.done-screen h2 { font-size: 24px; }
+	.done-sub { color: var(--fg-4); font-size: 13px; }
+
+	.done-actions {
+		display: flex;
+		gap: 10px;
+		align-items: center;
 		flex-wrap: wrap;
 		justify-content: center;
+		margin-top: 8px;
 	}
-	
-	.controls button {
-		min-width: 120px;
+
+	.done-back {
+		font-size: 12px;
+		color: var(--fg-4);
+		letter-spacing: 0.06em;
 	}
-	
-	.hint {
-		color: var(--placeholder);
-		font-size: 0.875rem;
-	}
-	
-	.keyboard-hints {
+
+	/* ── Empty ───────────────────────────────── */
+	.empty {
+		text-align: center;
+		color: var(--fg-4);
 		display: flex;
-		gap: var(--space-lg);
-		color: var(--placeholder);
-		font-size: 0.75rem;
+		flex-direction: column;
+		gap: 12px;
 	}
-	
-	.keyboard-hints span {
-		padding: var(--space-xs) var(--space-sm);
-		border: 1px solid var(--border);
-	}
-	
+
+	/* ── Responsive ──────────────────────────── */
 	@media (max-width: 600px) {
-		.flashcard-container {
-			height: 250px;
-		}
-		
-		.card-face p {
-			font-size: 1rem;
-		}
-		
-		.keyboard-hints {
-			display: none;
-		}
+		.card-scene { height: 260px; }
+		.card-text { font-size: 15px; }
+		.card-face { padding: 28px 24px; }
+		.kbd-hints { display: none; }
+		.deck-name-label { display: none; }
 	}
 </style>
 ------------------------------------------------------------

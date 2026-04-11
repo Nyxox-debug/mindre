@@ -1,15 +1,23 @@
 <script>
+	import { onMount } from 'svelte';
 	import { flashcardStore } from '$lib/stores.js';
-	
+
+	let decks = [];
 	let showNewDeckForm = false;
 	let newDeckName = '';
-	let decks = [];
 	let confirmDelete = null;
-	
+	let loading = true;
+	let inputEl;
+
 	flashcardStore.subscribe(data => {
 		decks = data.decks;
 	});
-	
+
+	onMount(async () => {
+		await flashcardStore.loadFromServer();
+		loading = false;
+	});
+
 	function createDeck() {
 		if (newDeckName.trim()) {
 			flashcardStore.addDeck(newDeckName.trim());
@@ -17,84 +25,95 @@
 			showNewDeckForm = false;
 		}
 	}
-	
+
 	function deleteDeck(id) {
 		if (confirmDelete === id) {
 			flashcardStore.deleteDeck(id);
 			confirmDelete = null;
 		} else {
 			confirmDelete = id;
-			setTimeout(() => {
-				confirmDelete = null;
-			}, 3000);
+			setTimeout(() => { confirmDelete = null; }, 3000);
 		}
 	}
-	
-	function handleKeydown(event) {
-		if (event.key === 'Enter' && newDeckName.trim()) {
-			createDeck();
-		}
-		if (event.key === 'Escape') {
-			showNewDeckForm = false;
-			newDeckName = '';
-			confirmDelete = null;
-		}
+
+	function openForm() {
+		showNewDeckForm = true;
+		setTimeout(() => inputEl?.focus(), 50);
+	}
+
+	function handleKey(e) {
+		if (e.key === 'Enter' && newDeckName.trim()) createDeck();
+		if (e.key === 'Escape') { showNewDeckForm = false; newDeckName = ''; }
 	}
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={handleKey} />
 
 <div class="home">
-	<div class="actions">
+	<!-- Top bar -->
+	<div class="topbar">
+		<div class="stats">
+			{#if !loading}
+				<span class="stat">
+					<span class="stat-val">{decks.length}</span>
+					<span class="stat-label">deck{decks.length !== 1 ? 's' : ''}</span>
+				</span>
+				<span class="sep">/</span>
+				<span class="stat">
+					<span class="stat-val">{decks.reduce((a, d) => a + d.cards.length, 0)}</span>
+					<span class="stat-label">cards</span>
+				</span>
+			{/if}
+		</div>
+
 		{#if !showNewDeckForm}
-			<button on:click={() => showNewDeckForm = true}>
-				+ New Deck
-			</button>
+			<button class="primary" on:click={openForm}>+ new deck</button>
 		{:else}
-			<div class="new-deck-form">
+			<div class="inline-form">
 				<input
-					type="text"
+					bind:this={inputEl}
 					bind:value={newDeckName}
-					placeholder="Deck name..."
-					autofocus
+					placeholder="deck name..."
+					maxlength="60"
 				/>
-				<button on:click={createDeck}>Create</button>
-				<button on:click={() => { showNewDeckForm = false; newDeckName = ''; }}>
-					Cancel
-				</button>
+				<button class="primary" on:click={createDeck} disabled={!newDeckName.trim()}>create</button>
+				<button on:click={() => { showNewDeckForm = false; newDeckName = ''; }}>cancel</button>
 			</div>
 		{/if}
 	</div>
-	
-	{#if decks.length === 0}
-		<div class="empty-state">
-			<p>No decks yet. Create one.</p>
+
+	<!-- Content -->
+	{#if loading}
+		<div class="loading">
+			<span class="dot-anim">loading<span class="blink">_</span></span>
+		</div>
+	{:else if decks.length === 0}
+		<div class="empty">
+			<div class="empty-icon">[ ]</div>
+			<p>No decks yet.</p>
+			<p class="empty-sub">Create a deck to start studying.</p>
 		</div>
 	{:else}
 		<div class="deck-grid">
 			{#each decks as deck (deck.id)}
-				<a href="/deck/{deck.id}" class="deck-card">
-					<h3>{deck.name}</h3>
-					<p class="card-count">{deck.cards.length} card{deck.cards.length !== 1 ? 's' : ''}</p>
-				</a>
-			{/each}
-		</div>
-	{/if}
-	
-	{#if decks.length > 0}
-		<div class="deck-list">
-			{#each decks as deck (deck.id)}
-				<div class="deck-item">
-					<a href="/deck/{deck.id}" class="deck-link">
-						<span class="deck-name">{deck.name}</span>
-						<span class="deck-count">({deck.cards.length})</span>
+				<div class="deck-card-wrap">
+					<a href="/deck/{deck.id}" class="deck-card">
+						<div class="deck-card-inner">
+							<div class="deck-name">{deck.name}</div>
+							<div class="deck-meta">
+								<span class="deck-count">{deck.cards.length}</span>
+								<span class="deck-count-label"> card{deck.cards.length !== 1 ? 's' : ''}</span>
+							</div>
+						</div>
+						<div class="deck-arrow">→</div>
 					</a>
-					<button 
-						class="delete-btn" 
-						class:confirm={confirmDelete === deck.id}
+					<button
+						class="danger deck-delete"
+						class:confirming={confirmDelete === deck.id}
 						on:click|preventDefault={() => deleteDeck(deck.id)}
+						title="Delete deck"
 					>
-						{confirmDelete === deck.id ? 'Confirm?' : 'Delete'}
+						{confirmDelete === deck.id ? 'confirm?' : '×'}
 					</button>
 				</div>
 			{/each}
@@ -106,116 +125,143 @@
 	.home {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-lg);
+		gap: 32px;
 	}
-	
-	.actions {
+
+	/* ── Topbar ──────────────────────────────── */
+	.topbar {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
 		flex-wrap: wrap;
-		gap: var(--space-md);
 	}
-	
-	.new-deck-form {
+
+	.stats {
 		display: flex;
-		gap: var(--space-sm);
-		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px;
+		font-size: 13px;
+		color: var(--fg-3);
 	}
-	
-	.new-deck-form input {
+
+	.stat { display: flex; align-items: baseline; gap: 5px; }
+	.stat-val { font-size: 20px; font-weight: 700; color: var(--fg); }
+	.stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+	.sep { color: var(--border-2); }
+
+	.inline-form {
+		display: flex;
+		gap: 8px;
 		flex: 1;
-		min-width: 200px;
+		max-width: 480px;
+		align-items: center;
 	}
-	
-	.empty-state {
-		color: var(--placeholder);
-		padding: var(--space-xl);
+
+	.inline-form input {
+		flex: 1;
+	}
+
+	/* ── Loading ─────────────────────────────── */
+	.loading {
+		padding: 60px 0;
+		color: var(--fg-4);
+		font-size: 12px;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	/* ── Empty ───────────────────────────────── */
+	.empty {
+		padding: 80px 0;
 		text-align: center;
-		border: 1px dashed var(--border);
+		color: var(--fg-4);
 	}
-	
+
+	.empty-icon {
+		font-size: 32px;
+		margin-bottom: 16px;
+		color: var(--fg-4);
+		letter-spacing: 6px;
+	}
+
+	.empty p { margin-bottom: 4px; }
+	.empty-sub { font-size: 12px; color: var(--fg-4); }
+
+	/* ── Deck Grid ───────────────────────────── */
 	.deck-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-		gap: var(--space-md);
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 12px;
 	}
-	
+
+	.deck-card-wrap {
+		position: relative;
+	}
+
 	.deck-card {
-		display: block;
-		padding: var(--space-lg);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 20px;
 		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--bg-1);
 		text-decoration: none;
-		transition: all 0.2s ease;
+		transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+		min-height: 90px;
 	}
-	
+
 	.deck-card:hover {
 		border-color: var(--accent);
-		box-shadow: 0 0 10px var(--accent-dim);
+		background: var(--bg-2);
+		box-shadow: 0 0 24px var(--accent-dim);
 		text-decoration: none;
 	}
-	
-	.deck-card h3 {
-		margin-bottom: var(--space-sm);
-		word-break: break-word;
-	}
-	
-	.card-count {
-		color: var(--placeholder);
-		font-size: 0.875rem;
-	}
-	
-	.deck-list {
-		margin-top: var(--space-xl);
-		border-top: 1px solid var(--border);
-		padding-top: var(--space-lg);
-	}
-	
-	.deck-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: var(--space-sm) 0;
-		border-bottom: 1px solid var(--border);
-	}
-	
-	.deck-link {
-		display: flex;
-		align-items: center;
-		gap: var(--space-sm);
-		flex: 1;
-		color: var(--fg);
-		text-decoration: none;
-	}
-	
-	.deck-link:hover {
-		color: var(--accent);
-		text-decoration: none;
-	}
-	
+
+	.deck-card-inner { flex: 1; min-width: 0; }
+
 	.deck-name {
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--fg);
+		margin-bottom: 8px;
 		word-break: break-word;
+		line-height: 1.4;
 	}
-	
-	.deck-count {
-		color: var(--placeholder);
-		font-size: 0.875rem;
+
+	.deck-meta { display: flex; align-items: baseline; gap: 3px; }
+	.deck-count { font-size: 18px; font-weight: 700; color: var(--accent); }
+	.deck-count-label { font-size: 10px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.06em; }
+
+	.deck-arrow {
+		color: var(--fg-4);
+		font-size: 16px;
+		margin-left: 12px;
+		transition: color 0.15s, transform 0.15s;
 	}
-	
-	.delete-btn {
-		font-size: 0.875rem;
-		padding: var(--space-xs) var(--space-sm);
-		color: var(--danger);
-		border-color: var(--danger);
+
+	.deck-card:hover .deck-arrow {
+		color: var(--accent);
+		transform: translateX(3px);
 	}
-	
-	.delete-btn:hover {
-		background: var(--danger);
-		color: var(--bg);
-		box-shadow: 0 0 10px var(--danger);
+
+	.deck-delete {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		padding: 3px 7px;
+		font-size: 12px;
+		opacity: 0;
+		transition: opacity 0.15s;
+		border-radius: var(--radius);
 	}
-	
-	.delete-btn.confirm {
-		background: var(--danger);
-		color: var(--bg);
+
+	.deck-card-wrap:hover .deck-delete { opacity: 1; }
+	.deck-delete.confirming {
+		opacity: 1;
+		border-color: var(--danger) !important;
+		color: var(--danger) !important;
+		background: var(--danger-dim) !important;
 	}
 </style>
