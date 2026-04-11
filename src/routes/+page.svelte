@@ -14,7 +14,6 @@
 	});
 
 	onMount(async () => {
-		await flashcardStore.loadFromServer();
 		loading = false;
 	});
 

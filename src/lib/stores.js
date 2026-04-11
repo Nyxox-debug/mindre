@@ -24,19 +24,6 @@ function createFlashcardStore() {
 		if (typeof window === 'undefined') return;
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
-		if (syncing) return;
-		syncing = true;
-		try {
-			await fetch('/api/decks', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(data)
-			});
-		} catch (e) {
-			console.warn('Sync failed, will use local cache:', e);
-		} finally {
-			syncing = false;
-		}
 	}
 
 	// Load from KV on startup
