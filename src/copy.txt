@@ -1,0 +1,1041 @@
+# Prompt:
+This is my current codebase
+
+# File collection from: /home/nyxox/Documents/Projects/mindre/src
+# Generated: 2026-04-11 21:37:30
+------------------------------------------------------------
+
+## app.css
+
+:root {
+	--bg: #000000;
+	--fg: #ffffff;
+	--accent: #00ff00;
+	--accent-dim: #00aa00;
+	--border: #333333;
+	--danger: #ff4444;
+	--placeholder: #666666;
+
+	--font: 'JetBrains Mono', monospace;
+
+	--space-xs: 4px;
+	--space-sm: 8px;
+	--space-md: 16px;
+	--space-lg: 24px;
+	--space-xl: 32px;
+	--space-xxl: 48px;
+}
+
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	height: 100%;
+}
+
+body {
+	font-family: var(--font);
+	font-size: 16px;
+	line-height: 1.6;
+	background-color: var(--bg);
+	color: var(--fg);
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+button {
+	font-family: var(--font);
+	font-size: 1rem;
+	cursor: pointer;
+	border: 1px solid var(--accent);
+	background: transparent;
+	color: var(--accent);
+	padding: var(--space-sm) var(--space-md);
+	transition: all 0.2s ease;
+}
+
+button:hover {
+	background: var(--accent);
+	color: var(--bg);
+	box-shadow: 0 0 10px var(--accent);
+}
+
+button:active {
+	transform: scale(0.98);
+}
+
+button:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+}
+
+button:disabled:hover {
+	background: transparent;
+	color: var(--accent);
+	box-shadow: none;
+}
+
+input, textarea {
+	font-family: var(--font);
+	font-size: 1rem;
+	background: var(--bg);
+	color: var(--fg);
+	border: 1px solid var(--border);
+	padding: var(--space-sm) var(--space-md);
+	outline: none;
+	transition: border-color 0.2s ease;
+}
+
+input:focus, textarea:focus {
+	border-color: var(--accent);
+	box-shadow: 0 0 5px var(--accent-dim);
+}
+
+input::placeholder, textarea::placeholder {
+	color: var(--placeholder);
+}
+
+.container {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: var(--space-lg);
+}
+
+h1 {
+	font-size: 2rem;
+	font-weight: 700;
+}
+
+h2 {
+	font-size: 1.5rem;
+	font-weight: 700;
+}
+
+h3 {
+	font-size: 1.25rem;
+}
+
+.blink {
+	animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+	0%, 50% { opacity: 1; }
+	51%, 100% { opacity: 0; }
+}
+
+.text-danger {
+	color: var(--danger);
+}
+
+.text-danger:hover {
+	border-color: var(--danger);
+	color: var(--danger);
+	box-shadow: 0 0 10px var(--danger);
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+------------------------------------------------------------
+
+## app.html
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
+------------------------------------------------------------
+
+## lib/stores.js
+
+import { writable } from 'svelte/store';
+
+function generateId() {
+	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function createFlashcardStore() {
+	const STORAGE_KEY = 'mindre-data';
+	
+	let initialData = { decks: [] };
+	
+	if (typeof window !== 'undefined' && window.localStorage) {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		if (stored) {
+			try {
+				initialData = JSON.parse(stored);
+			} catch (e) {
+				console.error('Failed to parse stored data:', e);
+			}
+		}
+	}
+	
+	const { subscribe, set, update } = writable(initialData);
+	
+	function persist(data) {
+		if (typeof window !== 'undefined' && window.localStorage) {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+		}
+	}
+	
+	return {
+		subscribe,
+		
+		addDeck: (name) => {
+			update(data => {
+				const newDeck = {
+					id: generateId(),
+					name: name,
+					cards: []
+				};
+				const newData = { decks: [...data.decks, newDeck] };
+				persist(newData);
+				return newData;
+			});
+		},
+		
+		deleteDeck: (deckId) => {
+			update(data => {
+				const newData = { decks: data.decks.filter(d => d.id !== deckId) };
+				persist(newData);
+				return newData;
+			});
+		},
+		
+		addCard: (deckId, front, back) => {
+			update(data => {
+				const newCard = {
+					id: generateId(),
+					front: front,
+					back: back
+				};
+				const newData = {
+					decks: data.decks.map(d => {
+						if (d.id === deckId) {
+							return { ...d, cards: [...d.cards, newCard] };
+						}
+						return d;
+					})
+				};
+				persist(newData);
+				return newData;
+			});
+		},
+		
+		deleteCard: (deckId, cardId) => {
+			update(data => {
+				const newData = {
+					decks: data.decks.map(d => {
+						if (d.id === deckId) {
+							return { ...d, cards: d.cards.filter(c => c.id !== cardId) };
+						}
+						return d;
+					})
+				};
+				persist(newData);
+				return newData;
+			});
+		},
+		
+		getDeck: (deckId) => {
+			let deck = null;
+			update(data => {
+				deck = data.decks.find(d => d.id === deckId);
+				return data;
+			});
+			return deck;
+		}
+	};
+}
+
+export const flashcardStore = createFlashcardStore();
+------------------------------------------------------------
+
+## routes/deck/[id]/+page.svelte
+
+<script>
+	import { page } from '$app/stores';
+	import { flashcardStore } from '$lib/stores.js';
+	import { onMount } from 'svelte';
+	
+	let deck = null;
+	let showAddCardForm = false;
+	let cardFront = '';
+	let cardBack = '';
+	let confirmDeleteCard = null;
+	
+	$: deckId = $page.params.id;
+	
+	onMount(() => {
+		const unsubscribe = flashcardStore.subscribe(data => {
+			deck = data.decks.find(d => d.id === deckId);
+		});
+		return unsubscribe;
+	});
+	
+	function addCard() {
+		if (cardFront.trim() && cardBack.trim()) {
+			flashcardStore.addCard(deckId, cardFront.trim(), cardBack.trim());
+			cardFront = '';
+			cardBack = '';
+			showAddCardForm = false;
+		}
+	}
+	
+	function deleteCard(cardId) {
+		if (confirmDeleteCard === cardId) {
+			flashcardStore.deleteCard(deckId, cardId);
+			confirmDeleteCard = null;
+		} else {
+			confirmDeleteCard = cardId;
+			setTimeout(() => {
+				confirmDeleteCard = null;
+			}, 3000);
+		}
+	}
+	
+	function handleKeydown(event) {
+		if (event.key === 'Escape') {
+			showAddCardForm = false;
+			cardFront = '';
+			cardBack = '';
+			confirmDeleteCard = null;
+		}
+	}
+</script>
+
+<svelte:window on:keydown={handleKeydown} />
+
+<div class="deck-view">
+	{#if !deck}
+		<p>Deck not found.</p>
+	{:else}
+		<div class="deck-header">
+			<a href="/" class="back-link">&larr; Back</a>
+			<h2>{deck.name}</h2>
+		</div>
+		
+		<div class="actions">
+			{#if deck.cards.length > 0}
+				<a href="/study/{deckId}" class="study-btn">Study</a>
+			{/if}
+			
+			{#if !showAddCardForm}
+				<button on:click={() => showAddCardForm = true}>
+					+ Add Card
+				</button>
+			{:else}
+				<div class="add-card-form">
+					<textarea
+						bind:value={cardFront}
+						placeholder="Front (question)..."
+						rows="2"
+						autofocus
+					></textarea>
+					<textarea
+						bind:value={cardBack}
+						placeholder="Back (answer)..."
+						rows="2"
+					></textarea>
+					<div class="form-actions">
+						<button on:click={addCard}>Add</button>
+						<button on:click={() => { showAddCardForm = false; cardFront = ''; cardBack = ''; }}>
+							Cancel
+						</button>
+					</div>
+				</div>
+			{/if}
+		</div>
+		
+		{#if deck.cards.length === 0 && !showAddCardForm}
+			<div class="empty-state">
+				<p>No cards yet. Add some cards to start studying.</p>
+			</div>
+		{:else}
+			<div class="card-list">
+				{#each deck.cards as card, index (card.id)}
+					<div class="card-item">
+						<div class="card-content">
+							<span class="card-num">{index + 1}.</span>
+							<div class="card-text">
+								<p class="card-front"><strong>Front:</strong> {card.front}</p>
+								<p class="card-back"><strong>Back:</strong> {card.back}</p>
+							</div>
+						</div>
+						<button 
+							class="delete-card-btn"
+							class:confirm={confirmDeleteCard === card.id}
+							on:click={() => deleteCard(card.id)}
+						>
+							{confirmDeleteCard === card.id ? 'Confirm?' : 'Delete'}
+						</button>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/if}
+</div>
+
+<style>
+	.deck-view {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-lg);
+	}
+	
+	.deck-header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+	}
+	
+	.back-link {
+		color: var(--placeholder);
+		font-size: 0.875rem;
+	}
+	
+	.back-link:hover {
+		color: var(--accent);
+	}
+	
+	.actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+	}
+	
+	.study-btn {
+		display: inline-block;
+		text-align: center;
+		background: var(--accent);
+		color: var(--bg);
+		padding: var(--space-sm) var(--space-md);
+		text-decoration: none;
+	}
+	
+	.study-btn:hover {
+		box-shadow: 0 0 10px var(--accent);
+		text-decoration: none;
+	}
+	
+	.add-card-form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		padding: var(--space-md);
+		border: 1px solid var(--border);
+	}
+	
+	.add-card-form textarea {
+		resize: vertical;
+		min-height: 60px;
+	}
+	
+	.form-actions {
+		display: flex;
+		gap: var(--space-sm);
+	}
+	
+	.empty-state {
+		color: var(--placeholder);
+		padding: var(--space-xl);
+		text-align: center;
+		border: 1px dashed var(--border);
+	}
+	
+	.card-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+	}
+	
+	.card-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: var(--space-md);
+		padding: var(--space-md);
+		border: 1px solid var(--border);
+	}
+	
+	.card-content {
+		display: flex;
+		gap: var(--space-md);
+		flex: 1;
+		min-width: 0;
+	}
+	
+	.card-num {
+		color: var(--placeholder);
+		flex-shrink: 0;
+	}
+	
+	.card-text {
+		flex: 1;
+		min-width: 0;
+	}
+	
+	.card-front, .card-back {
+		word-break: break-word;
+	}
+	
+	.card-front {
+		margin-bottom: var(--space-xs);
+	}
+	
+	.card-back {
+		color: var(--placeholder);
+	}
+	
+	.delete-card-btn {
+		font-size: 0.875rem;
+		padding: var(--space-xs) var(--space-sm);
+		color: var(--danger);
+		border-color: var(--danger);
+		flex-shrink: 0;
+	}
+	
+	.delete-card-btn:hover {
+		background: var(--danger);
+		color: var(--bg);
+		box-shadow: 0 0 10px var(--danger);
+	}
+	
+	.delete-card-btn.confirm {
+		background: var(--danger);
+		color: var(--bg);
+	}
+</style>
+------------------------------------------------------------
+
+## routes/+layout.svelte
+
+<script>
+	import '../app.css';
+</script>
+
+<div class="container">
+	<header>
+		<a href="/" class="logo">
+			<h1>mindre<span class="blink">_</span></h1>
+		</a>
+	</header>
+	
+	<main>
+		<slot />
+	</main>
+</div>
+
+<style>
+	header {
+		margin-bottom: var(--space-xxl);
+		padding-bottom: var(--space-lg);
+		border-bottom: 1px solid var(--border);
+	}
+	
+	.logo {
+		color: var(--fg);
+		text-decoration: none;
+	}
+	
+	.logo:hover {
+		text-decoration: none;
+	}
+	
+	.logo h1 {
+		display: inline;
+	}
+	
+	main {
+		min-height: calc(100vh - 150px);
+	}
+</style>
+------------------------------------------------------------
+
+## routes/+page.svelte
+
+<script>
+	import { flashcardStore } from '$lib/stores.js';
+	
+	let showNewDeckForm = false;
+	let newDeckName = '';
+	let decks = [];
+	let confirmDelete = null;
+	
+	flashcardStore.subscribe(data => {
+		decks = data.decks;
+	});
+	
+	function createDeck() {
+		if (newDeckName.trim()) {
+			flashcardStore.addDeck(newDeckName.trim());
+			newDeckName = '';
+			showNewDeckForm = false;
+		}
+	}
+	
+	function deleteDeck(id) {
+		if (confirmDelete === id) {
+			flashcardStore.deleteDeck(id);
+			confirmDelete = null;
+		} else {
+			confirmDelete = id;
+			setTimeout(() => {
+				confirmDelete = null;
+			}, 3000);
+		}
+	}
+	
+	function handleKeydown(event) {
+		if (event.key === 'Enter' && newDeckName.trim()) {
+			createDeck();
+		}
+		if (event.key === 'Escape') {
+			showNewDeckForm = false;
+			newDeckName = '';
+			confirmDelete = null;
+		}
+	}
+</script>
+
+<svelte:window on:keydown={handleKeydown} />
+
+<div class="home">
+	<div class="actions">
+		{#if !showNewDeckForm}
+			<button on:click={() => showNewDeckForm = true}>
+				+ New Deck
+			</button>
+		{:else}
+			<div class="new-deck-form">
+				<input
+					type="text"
+					bind:value={newDeckName}
+					placeholder="Deck name..."
+					autofocus
+				/>
+				<button on:click={createDeck}>Create</button>
+				<button on:click={() => { showNewDeckForm = false; newDeckName = ''; }}>
+					Cancel
+				</button>
+			</div>
+		{/if}
+	</div>
+	
+	{#if decks.length === 0}
+		<div class="empty-state">
+			<p>No decks yet. Create one.</p>
+		</div>
+	{:else}
+		<div class="deck-grid">
+			{#each decks as deck (deck.id)}
+				<a href="/deck/{deck.id}" class="deck-card">
+					<h3>{deck.name}</h3>
+					<p class="card-count">{deck.cards.length} card{deck.cards.length !== 1 ? 's' : ''}</p>
+				</a>
+			{/each}
+		</div>
+	{/if}
+	
+	{#if decks.length > 0}
+		<div class="deck-list">
+			{#each decks as deck (deck.id)}
+				<div class="deck-item">
+					<a href="/deck/{deck.id}" class="deck-link">
+						<span class="deck-name">{deck.name}</span>
+						<span class="deck-count">({deck.cards.length})</span>
+					</a>
+					<button 
+						class="delete-btn" 
+						class:confirm={confirmDelete === deck.id}
+						on:click|preventDefault={() => deleteDeck(deck.id)}
+					>
+						{confirmDelete === deck.id ? 'Confirm?' : 'Delete'}
+					</button>
+				</div>
+			{/each}
+		</div>
+	{/if}
+</div>
+
+<style>
+	.home {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-lg);
+	}
+	
+	.actions {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: var(--space-md);
+	}
+	
+	.new-deck-form {
+		display: flex;
+		gap: var(--space-sm);
+		flex-wrap: wrap;
+	}
+	
+	.new-deck-form input {
+		flex: 1;
+		min-width: 200px;
+	}
+	
+	.empty-state {
+		color: var(--placeholder);
+		padding: var(--space-xl);
+		text-align: center;
+		border: 1px dashed var(--border);
+	}
+	
+	.deck-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: var(--space-md);
+	}
+	
+	.deck-card {
+		display: block;
+		padding: var(--space-lg);
+		border: 1px solid var(--border);
+		text-decoration: none;
+		transition: all 0.2s ease;
+	}
+	
+	.deck-card:hover {
+		border-color: var(--accent);
+		box-shadow: 0 0 10px var(--accent-dim);
+		text-decoration: none;
+	}
+	
+	.deck-card h3 {
+		margin-bottom: var(--space-sm);
+		word-break: break-word;
+	}
+	
+	.card-count {
+		color: var(--placeholder);
+		font-size: 0.875rem;
+	}
+	
+	.deck-list {
+		margin-top: var(--space-xl);
+		border-top: 1px solid var(--border);
+		padding-top: var(--space-lg);
+	}
+	
+	.deck-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--space-sm) 0;
+		border-bottom: 1px solid var(--border);
+	}
+	
+	.deck-link {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		flex: 1;
+		color: var(--fg);
+		text-decoration: none;
+	}
+	
+	.deck-link:hover {
+		color: var(--accent);
+		text-decoration: none;
+	}
+	
+	.deck-name {
+		word-break: break-word;
+	}
+	
+	.deck-count {
+		color: var(--placeholder);
+		font-size: 0.875rem;
+	}
+	
+	.delete-btn {
+		font-size: 0.875rem;
+		padding: var(--space-xs) var(--space-sm);
+		color: var(--danger);
+		border-color: var(--danger);
+	}
+	
+	.delete-btn:hover {
+		background: var(--danger);
+		color: var(--bg);
+		box-shadow: 0 0 10px var(--danger);
+	}
+	
+	.delete-btn.confirm {
+		background: var(--danger);
+		color: var(--bg);
+	}
+</style>
+------------------------------------------------------------
+
+## routes/study/[id]/+page.svelte
+
+<script>
+	import { page } from '$app/stores';
+	import { flashcardStore } from '$lib/stores.js';
+	import { onMount } from 'svelte';
+	
+	let deck = null;
+	let currentIndex = 0;
+	let isFlipped = false;
+	
+	$: deckId = $page.params.id;
+	$: currentCard = deck?.cards[currentIndex] || null;
+	$: totalCards = deck?.cards.length || 0;
+	
+	onMount(() => {
+		const unsubscribe = flashcardStore.subscribe(data => {
+			deck = data.decks.find(d => d.id === deckId);
+		});
+		return unsubscribe;
+	});
+	
+	function flipCard() {
+		isFlipped = !isFlipped;
+	}
+	
+	function prevCard() {
+		if (currentIndex > 0) {
+			currentIndex--;
+			isFlipped = false;
+		}
+	}
+	
+	function nextCard() {
+		if (currentIndex < totalCards - 1) {
+			currentIndex++;
+			isFlipped = false;
+		}
+	}
+	
+	function handleKeydown(event) {
+		if (event.key === ' ' || event.key === 'Spacebar') {
+			event.preventDefault();
+			flipCard();
+		} else if (event.key === 'ArrowLeft') {
+			prevCard();
+		} else if (event.key === 'ArrowRight') {
+			nextCard();
+		} else if (event.key === 'Escape') {
+			window.location.href = `/deck/${deckId}`;
+		}
+	}
+</script>
+
+<svelte:window on:keydown={handleKeydown} />
+
+<div class="study-mode">
+	{#if !deck || deck.cards.length === 0}
+		<div class="empty-state">
+			<p>No cards to study.</p>
+			<a href="/deck/{deckId}">Back to deck</a>
+		</div>
+	{:else}
+		<div class="study-header">
+			<a href="/deck/{deckId}" class="exit-btn">&larr; Exit</a>
+			<span class="progress">Card {currentIndex + 1} / {totalCards}</span>
+		</div>
+		
+		<div class="flashcard-container" on:click={flipCard} on:keydown={flipCard} role="button" tabindex="0">
+			<div class="flashcard" class:flipped={isFlipped}>
+				<div class="card-face card-front">
+					<p>{currentCard.front}</p>
+				</div>
+				<div class="card-face card-back">
+					<p>{currentCard.back}</p>
+				</div>
+			</div>
+		</div>
+		
+		<div class="controls">
+			<button on:click={prevCard} disabled={currentIndex === 0}>
+				&larr; Previous
+			</button>
+			<span class="hint">Click card or press Space to flip</span>
+			<button on:click={nextCard} disabled={currentIndex === totalCards - 1}>
+				Next &rarr;
+			</button>
+		</div>
+		
+		<div class="keyboard-hints">
+			<span>&larr; Prev</span>
+			<span>Space: Flip</span>
+			<span>Next &rarr;</span>
+		</div>
+	{/if}
+</div>
+
+<style>
+	.study-mode {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: calc(100vh - 200px);
+		gap: var(--space-lg);
+	}
+	
+	.empty-state {
+		text-align: center;
+		color: var(--placeholder);
+	}
+	
+	.empty-state a {
+		color: var(--accent);
+	}
+	
+	.study-header {
+		width: 100%;
+		max-width: 500px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	
+	.exit-btn {
+		color: var(--placeholder);
+		font-size: 0.875rem;
+	}
+	
+	.exit-btn:hover {
+		color: var(--accent);
+	}
+	
+	.progress {
+		color: var(--accent);
+		font-weight: 700;
+	}
+	
+	.flashcard-container {
+		perspective: 1000px;
+		width: 100%;
+		max-width: 500px;
+		height: 300px;
+		cursor: pointer;
+	}
+	
+	.flashcard {
+		width: 100%;
+		height: 100%;
+		position: relative;
+		transform-style: preserve-3d;
+		transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	
+	.flashcard.flipped {
+		transform: rotateY(180deg);
+	}
+	
+	.card-face {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: var(--space-lg);
+		border: 1px solid var(--accent);
+		background: var(--bg);
+	}
+	
+	.card-front {
+		border-color: var(--accent);
+	}
+	
+	.card-back {
+		transform: rotateY(180deg);
+		border-color: var(--accent-dim);
+	}
+	
+	.card-face p {
+		text-align: center;
+		word-break: break-word;
+		font-size: 1.25rem;
+	}
+	
+	.controls {
+		display: flex;
+		align-items: center;
+		gap: var(--space-lg);
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	
+	.controls button {
+		min-width: 120px;
+	}
+	
+	.hint {
+		color: var(--placeholder);
+		font-size: 0.875rem;
+	}
+	
+	.keyboard-hints {
+		display: flex;
+		gap: var(--space-lg);
+		color: var(--placeholder);
+		font-size: 0.75rem;
+	}
+	
+	.keyboard-hints span {
+		padding: var(--space-xs) var(--space-sm);
+		border: 1px solid var(--border);
+	}
+	
+	@media (max-width: 600px) {
+		.flashcard-container {
+			height: 250px;
+		}
+		
+		.card-face p {
+			font-size: 1rem;
+		}
+		
+		.keyboard-hints {
+			display: none;
+		}
+	}
+</style>
+------------------------------------------------------------
+

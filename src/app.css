@@ -1,0 +1,148 @@
+:root {
+	--bg: #000000;
+	--fg: #ffffff;
+	--accent: #00ff00;
+	--accent-dim: #00aa00;
+	--border: #333333;
+	--danger: #ff4444;
+	--placeholder: #666666;
+
+	--font: 'JetBrains Mono', monospace;
+
+	--space-xs: 4px;
+	--space-sm: 8px;
+	--space-md: 16px;
+	--space-lg: 24px;
+	--space-xl: 32px;
+	--space-xxl: 48px;
+}
+
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	height: 100%;
+}
+
+body {
+	font-family: var(--font);
+	font-size: 16px;
+	line-height: 1.6;
+	background-color: var(--bg);
+	color: var(--fg);
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+button {
+	font-family: var(--font);
+	font-size: 1rem;
+	cursor: pointer;
+	border: 1px solid var(--accent);
+	background: transparent;
+	color: var(--accent);
+	padding: var(--space-sm) var(--space-md);
+	transition: all 0.2s ease;
+}
+
+button:hover {
+	background: var(--accent);
+	color: var(--bg);
+	box-shadow: 0 0 10px var(--accent);
+}
+
+button:active {
+	transform: scale(0.98);
+}
+
+button:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+}
+
+button:disabled:hover {
+	background: transparent;
+	color: var(--accent);
+	box-shadow: none;
+}
+
+input, textarea {
+	font-family: var(--font);
+	font-size: 1rem;
+	background: var(--bg);
+	color: var(--fg);
+	border: 1px solid var(--border);
+	padding: var(--space-sm) var(--space-md);
+	outline: none;
+	transition: border-color 0.2s ease;
+}
+
+input:focus, textarea:focus {
+	border-color: var(--accent);
+	box-shadow: 0 0 5px var(--accent-dim);
+}
+
+input::placeholder, textarea::placeholder {
+	color: var(--placeholder);
+}
+
+.container {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: var(--space-lg);
+}
+
+h1 {
+	font-size: 2rem;
+	font-weight: 700;
+}
+
+h2 {
+	font-size: 1.5rem;
+	font-weight: 700;
+}
+
+h3 {
+	font-size: 1.25rem;
+}
+
+.blink {
+	animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+	0%, 50% { opacity: 1; }
+	51%, 100% { opacity: 0; }
+}
+
+.text-danger {
+	color: var(--danger);
+}
+
+.text-danger:hover {
+	border-color: var(--danger);
+	color: var(--danger);
+	box-shadow: 0 0 10px var(--danger);
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
