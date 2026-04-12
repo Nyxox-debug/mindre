@@ -1,3 +1,3 @@
-Mindre
+# mindre 
 
-WIP
+A simple terminal styled PWA (Progressive Web App) for Space Repitetion
