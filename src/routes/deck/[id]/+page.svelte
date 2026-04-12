@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import { flashcardStore } from '$lib/stores';
-  import { onMount } from 'svelte';
-  import CodeBlock from '$lib/components/codeblock.svelte';
-  import type { Deck, Card, CardType } from '$lib/types';
+  import { page } from "$app/stores";
+  import { flashcardStore } from "$lib/stores";
+  import { onMount } from "svelte";
+  import CodeBlock from "$lib/components/codeblock.svelte";
+  import type { Deck, Card, CardType } from "$lib/types";
 
   let deck: Deck | null = null;
   let showAddForm = false;
@@ -11,31 +11,48 @@
   let editingCard: string | null = null;
 
   // Add form state
-  let cardFront = '';
-  let cardBack = '';
-  let frontType: CardType = 'text';
-  let backType: CardType = 'code';
-  let cardLanguage = 'javascript';
+  let cardFront = "";
+  let cardBack = "";
+  let frontType: CardType = "text";
+  let backType: CardType = "code";
+  let cardLanguage = "javascript";
   let frontInput: HTMLTextAreaElement;
 
   // Edit form state
-  let editFront = '';
-  let editBack = '';
-  let editFrontType: CardType = 'text';
-  let editBackType: CardType = 'code';
-  let editLanguage = 'javascript';
+  let editFront = "";
+  let editBack = "";
+  let editFrontType: CardType = "text";
+  let editBackType: CardType = "code";
+  let editLanguage = "javascript";
 
   $: deckId = $page.params.id as string;
 
   const LANGUAGES = [
-    'javascript', 'typescript', 'python', 'rust', 'go', 'java',
-    'c', 'cpp', 'csharp', 'bash', 'sql', 'html', 'css', 'json',
-    'yaml', 'markdown', 'ruby', 'php', 'swift', 'kotlin'
+    "javascript",
+    "typescript",
+    "python",
+    "rust",
+    "go",
+    "java",
+    "c",
+    "cpp",
+    "csharp",
+    "bash",
+    "sql",
+    "html",
+    "css",
+    "json",
+    "yaml",
+    "markdown",
+    "ruby",
+    "php",
+    "swift",
+    "kotlin",
   ];
 
   onMount(() => {
-    const unsub = flashcardStore.subscribe(data => {
-      deck = data.decks.find(d => d.id === deckId) ?? null;
+    const unsub = flashcardStore.subscribe((data) => {
+      deck = data.decks.find((d) => d.id === deckId) ?? null;
     });
     return unsub;
   });
@@ -48,12 +65,12 @@
         cardBack.trim(),
         frontType,
         backType,
-        cardLanguage
+        cardLanguage,
       );
-      cardFront = '';
-      cardBack = '';
-      frontType = 'text';
-      backType = 'code';
+      cardFront = "";
+      cardBack = "";
+      frontType = "text";
+      backType = "code";
       showAddForm = false;
     }
   }
@@ -64,7 +81,9 @@
       confirmDeleteCard = null;
     } else {
       confirmDeleteCard = cardId;
-      setTimeout(() => { confirmDeleteCard = null; }, 3000);
+      setTimeout(() => {
+        confirmDeleteCard = null;
+      }, 3000);
     }
   }
 
@@ -72,17 +91,21 @@
     editingCard = card.id;
     editFront = card.front;
     editBack = card.back;
-    editFrontType = card.frontType ?? 'text';
-    editBackType = card.backType ?? 'text';
-    editLanguage = card.language ?? 'javascript';
+    editFrontType = card.frontType ?? "text";
+    editBackType = card.backType ?? "text";
+    editLanguage = card.language ?? "javascript";
   }
 
   function saveEdit(cardId: string) {
     if (editFront.trim() && editBack.trim()) {
       flashcardStore.updateCard(
-        deckId, cardId,
-        editFront.trim(), editBack.trim(),
-        editFrontType, editBackType, editLanguage
+        deckId,
+        cardId,
+        editFront.trim(),
+        editBack.trim(),
+        editFrontType,
+        editBackType,
+        editLanguage,
       );
     }
     editingCard = null;
@@ -94,10 +117,10 @@
   }
 
   function handleKey(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       showAddForm = false;
-      cardFront = '';
-      cardBack = '';
+      cardFront = "";
+      cardBack = "";
       editingCard = null;
       confirmDeleteCard = null;
     }
@@ -122,8 +145,10 @@
           <h2 class="deck-title">{deck.name}</h2>
         </div>
         <div class="deck-badges">
-          <span class="badge">{deck.cards.length} card{deck.cards.length !== 1 ? 's' : ''}</span>
-          {#if deck.cards.some(c => c.frontType === 'code' || c.backType === 'code')}
+          <span class="badge"
+            >{deck.cards.length} card{deck.cards.length !== 1 ? "s" : ""}</span
+          >
+          {#if deck.cards.some((c) => c.frontType === "code" || c.backType === "code")}
             <span class="badge code">&#x3C;/&#x3E; code</span>
           {/if}
         </div>
@@ -160,21 +185,23 @@
               <label class="field-label" for="front-textarea">front</label>
               <div class="type-toggle">
                 <button
-                  class:active={frontType === 'text'}
-                  on:click={() => frontType = 'text'}
-                >text</button>
+                  class:active={frontType === "text"}
+                  on:click={() => (frontType = "text")}>text</button
+                >
                 <button
-                  class:active={frontType === 'code'}
-                  on:click={() => frontType = 'code'}
-                >&#x3C;/&#x3E;</button>
+                  class:active={frontType === "code"}
+                  on:click={() => (frontType = "code")}>&#x3C;/&#x3E;</button
+                >
               </div>
             </div>
             <textarea
               id="front-textarea"
               bind:this={frontInput}
               bind:value={cardFront}
-              class:code-input={frontType === 'code'}
-              placeholder={frontType === 'code' ? '// paste your code here...' : 'Question or term...'}
+              class:code-input={frontType === "code"}
+              placeholder={frontType === "code"
+                ? "// paste your code here..."
+                : "Question or term..."}
               rows="5"
             ></textarea>
           </div>
@@ -187,30 +214,42 @@
               <label class="field-label" for="back-textarea">back</label>
               <div class="type-toggle">
                 <button
-                  class:active={backType === 'text'}
-                  on:click={() => backType = 'text'}
-                >text</button>
+                  class:active={backType === "text"}
+                  on:click={() => (backType = "text")}>text</button
+                >
                 <button
-                  class:active={backType === 'code'}
-                  on:click={() => backType = 'code'}
-                >&#x3C;/&#x3E;</button>
+                  class:active={backType === "code"}
+                  on:click={() => (backType = "code")}>&#x3C;/&#x3E;</button
+                >
               </div>
             </div>
             <textarea
               id="back-textarea"
               bind:value={cardBack}
-              class:code-input={backType === 'code'}
-              placeholder={backType === 'code' ? '// answer code here...' : 'Answer or definition...'}
+              class:code-input={backType === "code"}
+              placeholder={backType === "code"
+                ? "// answer code here..."
+                : "Answer or definition..."}
               rows="5"
             ></textarea>
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="primary" on:click={addCard} disabled={!cardFront.trim() || !cardBack.trim()}>
+          <button
+            class="primary"
+            on:click={addCard}
+            disabled={!cardFront.trim() || !cardBack.trim()}
+          >
             add card
           </button>
-          <button on:click={() => { showAddForm = false; cardFront = ''; cardBack = ''; }}>cancel</button>
+          <button
+            on:click={() => {
+              showAddForm = false;
+              cardFront = "";
+              cardBack = "";
+            }}>cancel</button
+          >
         </div>
       </div>
     {/if}
@@ -220,19 +259,22 @@
       <div class="empty">
         <div class="empty-art">[ empty ]</div>
         <p>No cards yet. Add your first card above.</p>
-        <p class="empty-tip">Tip: enable the "code" type to add syntax-highlighted code snippets.</p>
+        <p class="empty-tip">
+          Tip: enable the "code" type to add syntax-highlighted code snippets.
+        </p>
       </div>
     {:else}
       <div class="card-list">
         {#each deck.cards as card, i (card.id)}
-          {@const isCode = card.frontType === 'code' || card.backType === 'code'}
+          {@const isCode =
+            card.frontType === "code" || card.backType === "code"}
           <div
             class="card-row"
             class:editing={editingCard === card.id}
             class:is-code={isCode}
           >
             <div class="card-num">
-              {String(i + 1).padStart(2, '0')}
+              {String(i + 1).padStart(2, "0")}
               {#if isCode}<span class="num-code">&#x3C;/&#x3E;</span>{/if}
             </div>
 
@@ -243,13 +285,20 @@
                   <div class="field-header">
                     <span class="field-label">front</span>
                     <div class="type-toggle small">
-                      <button class:active={editFrontType === 'text'} on:click={() => editFrontType = 'text'}>txt</button>
-                      <button class:active={editFrontType === 'code'} on:click={() => editFrontType = 'code'}>&#x3C;/&#x3E;</button>
+                      <button
+                        class:active={editFrontType === "text"}
+                        on:click={() => (editFrontType = "text")}>txt</button
+                      >
+                      <button
+                        class:active={editFrontType === "code"}
+                        on:click={() => (editFrontType = "code")}
+                        >&#x3C;/&#x3E;</button
+                      >
                     </div>
                   </div>
                   <textarea
                     bind:value={editFront}
-                    class:code-input={editFrontType === 'code'}
+                    class:code-input={editFrontType === "code"}
                     rows="3"
                   ></textarea>
                 </div>
@@ -258,13 +307,20 @@
                   <div class="field-header">
                     <span class="field-label">back</span>
                     <div class="type-toggle small">
-                      <button class:active={editBackType === 'text'} on:click={() => editBackType = 'text'}>txt</button>
-                      <button class:active={editBackType === 'code'} on:click={() => editBackType = 'code'}>&#x3C;/&#x3E;</button>
+                      <button
+                        class:active={editBackType === "text"}
+                        on:click={() => (editBackType = "text")}>txt</button
+                      >
+                      <button
+                        class:active={editBackType === "code"}
+                        on:click={() => (editBackType = "code")}
+                        >&#x3C;/&#x3E;</button
+                      >
                     </div>
                   </div>
                   <textarea
                     bind:value={editBack}
-                    class:code-input={editBackType === 'code'}
+                    class:code-input={editBackType === "code"}
                     rows="3"
                   ></textarea>
                 </div>
@@ -272,14 +328,20 @@
                   <div class="field-header">
                     <span class="field-label">lang</span>
                   </div>
-                  <select bind:value={editLanguage} style="padding: 7px 10px; font-size: 11px;">
+                  <select
+                    bind:value={editLanguage}
+                    style="padding: 7px 10px; font-size: 11px;"
+                  >
                     {#each LANGUAGES as lang}
                       <option value={lang}>{lang}</option>
                     {/each}
                   </select>
                   <div class="edit-actions">
-                    <button class="primary" on:click={() => saveEdit(card.id)}>save</button>
-                    <button on:click={() => editingCard = null}>cancel</button>
+                    <button class="primary" on:click={() => saveEdit(card.id)}
+                      >save</button
+                    >
+                    <button on:click={() => (editingCard = null)}>cancel</button
+                    >
                   </div>
                 </div>
               </div>
@@ -289,8 +351,11 @@
                 <div class="card-side">
                   <span class="side-label">F</span>
                   <div class="side-body">
-                    {#if card.frontType === 'code'}
-                      <CodeBlock code={card.front} language={card.language ?? 'javascript'} />
+                    {#if card.frontType === "code"}
+                      <CodeBlock
+                        code={card.front}
+                        language={card.language ?? "javascript"}
+                      />
                     {:else}
                       <span class="side-text">{card.front}</span>
                     {/if}
@@ -300,8 +365,11 @@
                 <div class="card-side back">
                   <span class="side-label">B</span>
                   <div class="side-body">
-                    {#if card.backType === 'code'}
-                      <CodeBlock code={card.back} language={card.language ?? 'javascript'} />
+                    {#if card.backType === "code"}
+                      <CodeBlock
+                        code={card.back}
+                        language={card.language ?? "javascript"}
+                      />
                     {:else}
                       <span class="side-text">{card.back}</span>
                     {/if}
@@ -309,13 +377,18 @@
                 </div>
               </div>
               <div class="card-actions">
-                <button class="icon-btn" on:click={() => startEdit(card)} title="Edit">✎</button>
+                <button
+                  class="icon-btn"
+                  on:click={() => startEdit(card)}
+                  title="Edit">✎</button
+                >
                 <button
                   class="icon-btn danger-btn"
                   class:confirming={confirmDeleteCard === card.id}
                   on:click={() => deleteCard(card.id)}
                   title="Delete"
-                >{confirmDeleteCard === card.id ? '?' : '×'}</button>
+                  >{confirmDeleteCard === card.id ? "?" : "×"}</button
+                >
               </div>
             {/if}
           </div>
@@ -339,7 +412,9 @@
     align-items: center;
     gap: 8px;
   }
-  .prompt { color: var(--accent); }
+  .prompt {
+    color: var(--accent);
+  }
 
   /* ── Header ──────────────────────────────── */
   .deck-header {
@@ -356,7 +431,9 @@
     text-decoration: none;
     transition: color 0.12s;
   }
-  .back:hover { color: var(--accent); }
+  .back:hover {
+    color: var(--accent);
+  }
 
   .header-main {
     display: flex;
@@ -428,7 +505,9 @@
     padding: 7px 14px;
     border-radius: var(--radius);
     text-decoration: none;
-    transition: box-shadow 0.12s, opacity 0.12s;
+    transition:
+      box-shadow 0.12s,
+      opacity 0.12s;
   }
   .study-link:hover {
     box-shadow: 0 0 18px var(--accent-glow);
@@ -475,7 +554,9 @@
     flex-shrink: 0;
   }
 
-  .lang-select-wrap select { width: 130px; }
+  .lang-select-wrap select {
+    width: 130px;
+  }
 
   .form-grid {
     display: grid;
@@ -492,8 +573,12 @@
   }
 
   @media (max-width: 640px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .form-arrow { display: none; }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .form-arrow {
+      display: none;
+    }
   }
 
   .form-field {
@@ -605,10 +690,18 @@
     position: relative;
   }
 
-  .card-row:last-child { border-bottom: none; }
-  .card-row:hover { background: var(--bg-2); }
-  .card-row.editing { background: var(--bg-2); }
-  .card-row.is-code { border-left: 2px solid rgba(0, 188, 212, 0.3); }
+  .card-row:last-child {
+    border-bottom: none;
+  }
+  .card-row:hover {
+    background: var(--bg-2);
+  }
+  .card-row.editing {
+    background: var(--bg-2);
+  }
+  .card-row.is-code {
+    border-left: 2px solid rgba(0, 188, 212, 0.3);
+  }
 
   .card-num {
     font-size: 10px;
@@ -638,8 +731,12 @@
   }
 
   @media (max-width: 600px) {
-    .card-content { grid-template-columns: 1fr; }
-    .card-sep { display: none; }
+    .card-content {
+      grid-template-columns: 1fr;
+    }
+    .card-sep {
+      display: none;
+    }
   }
 
   .card-side {
@@ -650,7 +747,9 @@
     min-width: 0;
   }
 
-  .card-side.back { border-left: 1px solid var(--border); }
+  .card-side.back {
+    border-left: 1px solid var(--border);
+  }
 
   .side-label {
     font-size: 8px;
@@ -694,7 +793,15 @@
     flex-shrink: 0;
   }
 
-  .card-row:hover .card-actions { opacity: 1; }
+  .card-row:hover .card-actions {
+    opacity: 1;
+  }
+
+  @media (max-width: 600px) {
+    .card-actions {
+      opacity: 1;
+    }
+  }
 
   .icon-btn {
     padding: 4px 7px;
@@ -734,8 +841,12 @@
   }
 
   @media (max-width: 640px) {
-    .card-edit { grid-template-columns: 1fr; }
-    .edit-arrow { display: none; }
+    .card-edit {
+      grid-template-columns: 1fr;
+    }
+    .edit-arrow {
+      display: none;
+    }
   }
 
   .edit-col {
