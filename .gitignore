@@ -6,4 +6,4 @@ build
 !.env.example
 vercel.json
 .output
-tmp
+tmp.vercel
