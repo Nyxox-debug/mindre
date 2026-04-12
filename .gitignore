@@ -7,3 +7,4 @@ build
 vercel.json
 .output
 tmp.vercel
+.vercel
