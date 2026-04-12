@@ -14,7 +14,7 @@ function createFlashcardStore() {
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
       if (cached) initialData = JSON.parse(cached);
-    } catch {}
+    } catch { }
   }
 
   const { subscribe, set, update } = writable<StoreData>(initialData);
@@ -22,31 +22,10 @@ function createFlashcardStore() {
   async function persist(data: StoreData): Promise<void> {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    // Sync to KV in background (fire and forget)
-    fetch('/api/decks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).catch(() => {/* offline — local cache is source of truth */});
-  }
-
-  async function loadFromServer(): Promise<void> {
-    if (typeof window === 'undefined') return;
-    try {
-      const res = await fetch('/api/decks');
-      if (res.ok) {
-        const data: StoreData = await res.json();
-        set(data);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      }
-    } catch {
-      console.warn('Could not reach server, using local cache');
-    }
   }
 
   return {
     subscribe,
-    loadFromServer,
 
     addDeck: (name: string): void => {
       let saved!: StoreData;
@@ -131,13 +110,13 @@ function createFlashcardStore() {
           decks: data.decks.map(d =>
             d.id === deckId
               ? {
-                  ...d,
-                  cards: d.cards.map(c =>
-                    c.id === cardId
-                      ? { ...c, front, back, frontType, backType, language }
-                      : c
-                  )
-                }
+                ...d,
+                cards: d.cards.map(c =>
+                  c.id === cardId
+                    ? { ...c, front, back, frontType, backType, language }
+                    : c
+                )
+              }
               : d
           )
         };

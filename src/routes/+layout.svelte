@@ -1,17 +1,13 @@
 <script lang="ts">
-  import '../app.css';
-  import { onMount } from 'svelte';
-  import { flashcardStore } from '$lib/stores';
-
-  onMount(() => {
-    flashcardStore.loadFromServer();
-  });
+  import "../app.css";
 </script>
 
 <div class="container">
   <header>
     <a href="/" class="wordmark">
-      <span class="prefix">~/</span><span class="name">mindre</span><span class="blink">▌</span>
+      <span class="prefix">~/</span><span class="name">mindre</span><span
+        class="blink">▌</span
+      >
     </a>
     <nav class="header-right">
       <span class="tagline">flashcard · spaced repetition</span>
@@ -119,7 +115,13 @@
   }
 
   @media (max-width: 480px) {
-    .tagline { display: none; }
-    footer { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .tagline {
+      display: none;
+    }
+    footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
   }
 </style>
