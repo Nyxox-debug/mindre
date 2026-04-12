@@ -1,62 +1,125 @@
-<script>
-	import '../app.css';
+<script lang="ts">
+  import '../app.css';
+  import { onMount } from 'svelte';
+  import { flashcardStore } from '$lib/stores';
+
+  onMount(() => {
+    flashcardStore.loadFromServer();
+  });
 </script>
 
 <div class="container">
-	<header>
-		<a href="/" class="wordmark">
-			<span class="wordmark-text">mindre</span><span class="blink">_</span>
-		</a>
-		<p class="tagline">flashcard study tool</p>
-	</header>
+  <header>
+    <a href="/" class="wordmark">
+      <span class="prefix">~/</span><span class="name">mindre</span><span class="blink">▌</span>
+    </a>
+    <nav class="header-right">
+      <span class="tagline">flashcard · spaced repetition</span>
+    </nav>
+  </header>
 
-	<main>
-		<slot />
-	</main>
+  <main>
+    <slot />
+  </main>
 
-	<footer>
-		<span>↑↓←→ navigate · space flip · esc back</span>
-	</footer>
+  <footer>
+    <span class="footer-hint">
+      <kbd>←→</kbd> navigate&nbsp;&nbsp;
+      <kbd>space</kbd> flip&nbsp;&nbsp;
+      <kbd>esc</kbd> back
+    </span>
+    <span class="footer-version">v2.0</span>
+  </footer>
 </div>
 
 <style>
-	header {
-		padding-bottom: 32px;
-		margin-bottom: 48px;
-		border-bottom: 1px solid var(--border);
-		display: flex;
-		align-items: baseline;
-		gap: 20px;
-	}
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 24px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border-2);
+    gap: 16px;
+  }
 
-	.wordmark {
-		font-size: 22px;
-		font-weight: 700;
-		color: var(--fg);
-		letter-spacing: -0.02em;
-		text-decoration: none;
-	}
+  .wordmark {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--fg);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
 
-	.wordmark-text { color: var(--fg); }
+  .prefix {
+    color: var(--fg-3);
+    font-weight: 300;
+  }
 
-	.tagline {
-		font-size: 11px;
-		color: var(--fg-4);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-	}
+  .name {
+    color: var(--accent);
+    margin: 0 1px;
+  }
 
-	main {
-		min-height: calc(100vh - 200px);
-	}
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
 
-	footer {
-		margin-top: 64px;
-		padding-top: 20px;
-		border-top: 1px solid var(--border);
-		font-size: 10px;
-		color: var(--fg-4);
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-	}
+  .tagline {
+    font-size: 10px;
+    color: var(--fg-4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  main {
+    min-height: calc(100dvh - 180px);
+  }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .footer-hint {
+    font-size: 10px;
+    color: var(--fg-4);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .footer-version {
+    font-size: 10px;
+    color: var(--fg-4);
+    letter-spacing: 0.08em;
+  }
+
+  kbd {
+    background: var(--bg-3);
+    border: 1px solid var(--border-2);
+    border-radius: 2px;
+    padding: 1px 5px;
+    font-family: var(--font);
+    font-size: 10px;
+    color: var(--fg-3);
+  }
+
+  @media (max-width: 480px) {
+    .tagline { display: none; }
+    footer { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
 </style>
