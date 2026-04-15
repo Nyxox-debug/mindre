@@ -1,7 +1,4 @@
 #!/bin/bash
-# Run once to create placeholder icons. Replace with proper PNGs before production.
-# Usage: bash generate-icons.sh
-# Requires: Inkscape or rsvg-convert (or just design your icons manually)
 
 mkdir -p static/icons
 
