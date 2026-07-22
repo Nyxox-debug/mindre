@@ -1,39 +1,72 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { flashcardStore } from '$lib/stores';
-  import type { Deck } from '$lib/types';
+  import LocalImportNotice from '$lib/components/LocalImportNotice.svelte';
+  import type { PageData } from './$types';
+  import { flashcardStore } from '$lib/stores/flashcards';
+  import { isCardDue } from '$lib/spaced-repetition';
 
-  let decks: Deck[] = [];
+  export let data: PageData;
+
   let showNewDeckForm = false;
   let newDeckName = '';
   let confirmDelete: string | null = null;
-  let loading = true;
+  let renameDeckId: string | null = null;
+  let renameValue = '';
   let inputEl: HTMLInputElement;
 
-  flashcardStore.subscribe(data => {
-    decks = data.decks;
-  });
+  $: decks = $flashcardStore.decks;
+  $: loading = $flashcardStore.loading;
+  $: totalCards = decks.reduce((total, deck) => total + deck.cards.length, 0);
+  $: codeCards = decks.reduce(
+    (total, deck) => total + deck.cards.filter((card) => card.frontType === 'code' || card.backType === 'code').length,
+    0
+  );
+  $: dueCards = decks.reduce(
+    (total, deck) => total + deck.cards.filter((card) => isCardDue(card.progress)).length,
+    0
+  );
 
   onMount(() => {
-    loading = false;
+    if (data.user && !$flashcardStore.initialized) {
+      void flashcardStore.initialize(data.supabase, data.user.id);
+    }
   });
 
-  function createDeck() {
-    if (newDeckName.trim()) {
-      flashcardStore.addDeck(newDeckName.trim());
+  async function createDeck() {
+    const name = newDeckName.trim();
+    if (!name) return;
+    try {
+      await flashcardStore.addDeck(name);
       newDeckName = '';
       showNewDeckForm = false;
-    }
+    } catch { /* store displays the error */ }
   }
 
-  function deleteDeck(id: string) {
-    if (confirmDelete === id) {
-      flashcardStore.deleteDeck(id);
-      confirmDelete = null;
-    } else {
+  async function deleteDeck(id: string) {
+    if (confirmDelete !== id) {
       confirmDelete = id;
-      setTimeout(() => { confirmDelete = null; }, 3000);
+      setTimeout(() => { if (confirmDelete === id) confirmDelete = null; }, 3000);
+      return;
     }
+    try {
+      await flashcardStore.deleteDeck(id);
+      confirmDelete = null;
+    } catch { /* store displays the error */ }
+  }
+
+  function beginRename(id: string, name: string) {
+    renameDeckId = id;
+    renameValue = name;
+  }
+
+  async function saveRename() {
+    const name = renameValue.trim();
+    if (!renameDeckId || !name) return;
+    try {
+      await flashcardStore.renameDeck(renameDeckId, name);
+      renameDeckId = null;
+      renameValue = '';
+    } catch { /* store displays the error */ }
   }
 
   function openForm() {
@@ -41,60 +74,52 @@
     setTimeout(() => inputEl?.focus(), 50);
   }
 
-  function handleKey(e: KeyboardEvent) {
-    if (e.key === 'Enter' && newDeckName.trim()) createDeck();
-    if (e.key === 'Escape') { showNewDeckForm = false; newDeckName = ''; }
+  function handleKey(event: KeyboardEvent) {
+    const target = event.target as HTMLElement | null;
+    const typing = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+    if (event.key === 'Enter' && !typing && showNewDeckForm && newDeckName.trim()) void createDeck();
+    if (event.key === 'Escape') {
+      showNewDeckForm = false;
+      newDeckName = '';
+      renameDeckId = null;
+      confirmDelete = null;
+    }
   }
-
-  $: totalCards = decks.reduce((a, d) => a + d.cards.length, 0);
-  $: codeCards = decks.reduce(
-    (a, d) => a + d.cards.filter(c => c.frontType === 'code' || c.backType === 'code').length,
-    0
-  );
 </script>
 
+<svelte:head><title>decks · mindre</title></svelte:head>
 <svelte:window on:keydown={handleKey} />
 
 <div class="home">
-  <!-- Shell prompt header -->
   <div class="shell-line">
-    <span class="prompt">$</span>
-    <span class="cmd">list decks</span>
-    <span class="blink">▌</span>
+    <span class="prompt">$</span><span class="cmd">list decks</span><span class="blink">▌</span>
   </div>
 
-  <!-- Stats bar -->
+  {#if data.user}
+    <LocalImportNotice userId={data.user.id} supabase={data.supabase} />
+  {/if}
+
+  {#if $flashcardStore.error}
+    <div class="notice error" role="alert"><span>error: {$flashcardStore.error}</span><button on:click={flashcardStore.clearMessages}>×</button></div>
+  {:else if $flashcardStore.success}
+    <div class="notice success"><span>✓ {$flashcardStore.success}</span><button on:click={flashcardStore.clearMessages}>×</button></div>
+  {/if}
+
   {#if !loading && decks.length > 0}
     <div class="stats-bar">
-      <div class="stat">
-        <span class="stat-val">{decks.length}</span>
-        <span class="stat-label">deck{decks.length !== 1 ? 's' : ''}</span>
-      </div>
+      <div class="stat"><span class="stat-val">{decks.length}</span><span class="stat-label">deck{decks.length !== 1 ? 's' : ''}</span></div>
       <span class="stat-sep">/</span>
-      <div class="stat">
-        <span class="stat-val">{totalCards}</span>
-        <span class="stat-label">total cards</span>
-      </div>
-      {#if codeCards > 0}
-        <span class="stat-sep">/</span>
-        <div class="stat">
-          <span class="stat-val code-accent">{codeCards}</span>
-          <span class="stat-label">code</span>
-        </div>
-      {/if}
+      <div class="stat"><span class="stat-val">{totalCards}</span><span class="stat-label">total cards</span></div>
+      {#if dueCards > 0}<span class="stat-sep">/</span><div class="stat"><span class="stat-val">{dueCards}</span><span class="stat-label">due</span></div>{/if}
+      {#if codeCards > 0}<span class="stat-sep">/</span><div class="stat"><span class="stat-val code-accent">{codeCards}</span><span class="stat-label">code</span></div>{/if}
       <div class="topbar-actions">
         {#if !showNewDeckForm}
           <button class="primary" on:click={openForm}>+ new deck</button>
         {:else}
           <div class="inline-form">
             <span class="inline-prompt">&gt;</span>
-            <input
-              bind:this={inputEl}
-              bind:value={newDeckName}
-              placeholder="deck name..."
-              maxlength="60"
-            />
-            <button class="primary" on:click={createDeck} disabled={!newDeckName.trim()}>create</button>
+            <input bind:this={inputEl} bind:value={newDeckName} placeholder="deck name..." maxlength="60" aria-label="Deck name" />
+            <button class="primary" on:click={createDeck} disabled={!newDeckName.trim() || $flashcardStore.saving}>create</button>
             <button on:click={() => { showNewDeckForm = false; newDeckName = ''; }}>cancel</button>
           </div>
         {/if}
@@ -102,74 +127,55 @@
     </div>
   {:else if !loading}
     <div class="topbar-alone">
-      {#if !showNewDeckForm}
-        <button class="primary" on:click={openForm}>+ new deck</button>
+      {#if !showNewDeckForm}<button class="primary" on:click={openForm}>+ new deck</button>
       {:else}
         <div class="inline-form">
           <span class="inline-prompt">&gt;</span>
-          <input
-            bind:this={inputEl}
-            bind:value={newDeckName}
-            placeholder="deck name..."
-            maxlength="60"
-          />
-          <button class="primary" on:click={createDeck} disabled={!newDeckName.trim()}>create</button>
+          <input bind:this={inputEl} bind:value={newDeckName} placeholder="deck name..." maxlength="60" aria-label="Deck name" />
+          <button class="primary" on:click={createDeck} disabled={!newDeckName.trim() || $flashcardStore.saving}>create</button>
           <button on:click={() => { showNewDeckForm = false; newDeckName = ''; }}>cancel</button>
         </div>
       {/if}
     </div>
   {/if}
 
-  <!-- Content -->
   {#if loading}
-    <div class="loading">
-      <span class="loading-text">loading<span class="blink">▌</span></span>
-    </div>
+    <div class="loading"><span class="loading-text">loading from Supabase<span class="blink">▌</span></span></div>
   {:else if decks.length === 0}
     <div class="empty">
-      <div class="empty-art">
-        <div class="empty-line">┌─────────────────────┐</div>
-        <div class="empty-line">│  no decks found     │</div>
-        <div class="empty-line">└─────────────────────┘</div>
-      </div>
+      <div class="empty-art"><div class="empty-line">┌─────────────────────┐</div><div class="empty-line">│  no decks found     │</div><div class="empty-line">└─────────────────────┘</div></div>
       <p class="empty-sub">Create a deck to start studying.</p>
-      {#if !showNewDeckForm}
-        <button class="primary" on:click={openForm}>+ create first deck</button>
-      {/if}
+      {#if !showNewDeckForm}<button class="primary" on:click={openForm}>+ create first deck</button>{/if}
     </div>
   {:else}
     <div class="deck-grid">
       {#each decks as deck (deck.id)}
-        {@const hasCode = deck.cards.some(c => c.frontType === 'code' || c.backType === 'code')}
+        {@const hasCode = deck.cards.some((card) => card.frontType === 'code' || card.backType === 'code')}
+        {@const deckDue = deck.cards.filter((card) => isCardDue(card.progress)).length}
         <div class="deck-card-wrap">
-          <a href="/deck/{deck.id}" class="deck-card">
-            <div class="deck-card-top">
-              <div class="deck-name">{deck.name}</div>
-              {#if hasCode}
-                <span class="code-badge">&#x3C;/&#x3E;</span>
-              {/if}
+          {#if renameDeckId === deck.id}
+            <div class="rename-form">
+              <input bind:value={renameValue} maxlength="60" aria-label="New deck name" on:keydown={(event) => { if (event.key === 'Enter') void saveRename(); }} />
+              <button class="primary" on:click={saveRename} disabled={!renameValue.trim() || $flashcardStore.saving}>save</button>
+              <button on:click={() => (renameDeckId = null)}>cancel</button>
             </div>
-            <div class="deck-card-bottom">
-              <div class="deck-meta">
-                <span class="deck-count">{deck.cards.length}</span>
-                <span class="deck-count-label"> card{deck.cards.length !== 1 ? 's' : ''}</span>
+          {:else}
+            <a href="/deck/{deck.id}" class="deck-card">
+              <div class="deck-card-top"><div class="deck-name">{deck.name}</div>{#if hasCode}<span class="code-badge">&#x3C;/&#x3E;</span>{/if}</div>
+              <div class="deck-card-bottom">
+                <div class="deck-meta"><span class="deck-count">{deck.cards.length}</span><span class="deck-count-label"> card{deck.cards.length !== 1 ? 's' : ''}</span></div>
+                {#if deckDue > 0}<span class="due-count">{deckDue} due</span>{/if}
+                {#if hasCode}<span class="deck-code-count">{deck.cards.filter((card) => card.frontType === 'code' || card.backType === 'code').length} code</span>{/if}
+                <span class="deck-arrow">→</span>
               </div>
-              {#if hasCode}
-                <span class="deck-code-count">
-                  {deck.cards.filter(c => c.frontType === 'code' || c.backType === 'code').length} code
-                </span>
-              {/if}
-              <span class="deck-arrow">→</span>
+            </a>
+            <div class="deck-actions">
+              <button on:click={() => beginRename(deck.id, deck.name)} title="Rename deck" aria-label="Rename {deck.name}">✎</button>
+              <button class="danger deck-delete" class:confirming={confirmDelete === deck.id} on:click={() => deleteDeck(deck.id)} title="Delete deck" aria-label="Delete {deck.name}" disabled={$flashcardStore.saving}>
+                {confirmDelete === deck.id ? 'confirm?' : '×'}
+              </button>
             </div>
-          </a>
-          <button
-            class="danger deck-delete"
-            class:confirming={confirmDelete === deck.id}
-            on:click|preventDefault={() => deleteDeck(deck.id)}
-            title="Delete deck"
-          >
-            {confirmDelete === deck.id ? 'confirm?' : '×'}
-          </button>
+          {/if}
         </div>
       {/each}
     </div>
@@ -406,4 +412,17 @@
   @media (max-width: 480px) {
     .deck-grid { grid-template-columns: 1fr; }
   }
+
+  .notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 12px; border: 1px solid var(--border-2); background: var(--bg-1); font-size: 11px; }
+  .notice.error { color: var(--danger); border-color: var(--danger); background: var(--danger-dim); }
+  .notice.success { color: var(--accent); }
+  .notice button { padding: 2px 6px; font-size: 9px; }
+  .deck-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 3px; opacity: 0; transition: opacity .12s; z-index: 2; }
+  .deck-card-wrap:hover .deck-actions, .deck-card-wrap:focus-within .deck-actions { opacity: 1; }
+  .deck-actions button { padding: 2px 6px; font-size: 10px; }
+  .deck-delete { position: static; opacity: 1; }
+  .rename-form { display: flex; gap: 6px; padding: 8px; border: 1px solid var(--border-2); background: var(--bg-1); }
+  .rename-form input { min-width: 0; }
+  .due-count { font-size: 9px; color: var(--accent); text-transform: uppercase; letter-spacing: .07em; }
+  @media (max-width: 600px) { .deck-actions { opacity: 1; } .inline-form { flex-wrap: wrap; } }
 </style>

@@ -1,21 +1,32 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
 
   export let code: string;
   export let language: string = 'javascript';
 
   let highlighted = '';
   let copied = false;
+  let highlightRequest = 0;
 
-  onMount(async () => {
+  async function highlightCode(source: string, selectedLanguage: string) {
+    if (!browser) return;
+    const request = ++highlightRequest;
     const hljs = (await import('highlight.js')).default;
-    try {
-      const result = hljs.highlight(code, { language });
-      highlighted = result.value;
-    } catch {
-      highlighted = hljs.highlightAuto(code).value;
-    }
-  });
+    const value = (() => {
+      try {
+        return hljs.highlight(source, { language: selectedLanguage }).value;
+      } catch {
+        return hljs.highlightAuto(source).value;
+      }
+    })();
+
+    if (request === highlightRequest) highlighted = value;
+  }
+
+  $: {
+    highlighted = '';
+    void highlightCode(code, language);
+  }
 
   async function copyCode() {
     await navigator.clipboard.writeText(code);
@@ -31,7 +42,7 @@
       {copied ? '✓ copied' : 'copy'}
     </button>
   </div>
-  <pre><code class="hljs language-{language}">{@html highlighted || code}</code></pre>
+  <pre>{#if highlighted}<code class="hljs language-{language}">{@html highlighted}</code>{:else}<code class="hljs language-{language}">{code}</code>{/if}</pre>
 </div>
 
 <style>
