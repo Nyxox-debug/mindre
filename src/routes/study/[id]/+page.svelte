@@ -1,29 +1,50 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { flashcardStore } from '$lib/stores';
   import { onMount } from 'svelte';
   import CodeBlock from '$lib/components/codeblock.svelte';
-  import type { Deck, Card } from '$lib/types';
+  import { flashcardStore } from '$lib/stores/flashcards';
+  import { isCardDue } from '$lib/spaced-repetition';
+  import type { Card, ReviewRating } from '$lib/types';
+  import type { PageData } from './$types';
 
-  let deck: Deck | null = null;
+  export let data: PageData;
+
+  let loading = true;
+  let cards: Card[] = [];
   let currentIndex = 0;
   let isFlipped = false;
   let shuffled = false;
-  let cards: Card[] = [];
   let done = false;
+  let reviewSaving = false;
+  let localError = '';
 
   $: deckId = $page.params.id as string;
+  $: dueMode = $page.url.searchParams.get('mode') === 'due';
+  $: deck = $flashcardStore.decks.find((item) => item.id === deckId) ?? null;
   $: currentCard = cards[currentIndex] ?? null;
   $: total = cards.length;
   $: progressPct = total > 0 ? (currentIndex / total) * 100 : 0;
+  $: frontIsCode = currentCard?.frontType === 'code';
+  $: backIsCode = currentCard?.backType === 'code';
+  $: cardLanguage = currentCard?.language ?? 'javascript';
 
-  onMount(() => {
-    const unsub = flashcardStore.subscribe(data => {
-      deck = data.decks.find(d => d.id === deckId) ?? null;
-      if (deck) cards = [...deck.cards];
-    });
-    return unsub;
+  onMount(async () => {
+    try {
+      if (data.user && !$flashcardStore.initialized) {
+        await flashcardStore.initialize(data.supabase, data.user.id);
+      }
+      const loadedDeck = await flashcardStore.loadDeck(deckId);
+      cards = selectCards(loadedDeck?.cards ?? []);
+    } catch (error) {
+      localError = error instanceof Error ? error.message : 'Could not load the study session.';
+    } finally {
+      loading = false;
+    }
   });
+
+  function selectCards(source: Card[]): Card[] {
+    return dueMode ? source.filter((card) => isCardDue(card.progress)) : [...source];
+  }
 
   function shuffle() {
     cards = [...cards].sort(() => Math.random() - 0.5);
@@ -34,7 +55,7 @@
   }
 
   function reset() {
-    cards = deck ? [...deck.cards] : [];
+    cards = selectCards(deck?.cards ?? []);
     currentIndex = 0;
     isFlipped = false;
     done = false;
@@ -45,7 +66,7 @@
 
   function prev() {
     if (currentIndex > 0) {
-      currentIndex--;
+      currentIndex -= 1;
       isFlipped = false;
       done = false;
     }
@@ -53,142 +74,115 @@
 
   function next() {
     if (currentIndex < total - 1) {
-      currentIndex++;
+      currentIndex += 1;
       isFlipped = false;
     } else if (!done) {
       done = true;
     }
   }
 
-  function handleKey(e: KeyboardEvent) {
-    if (done) {
-      if (e.key === 'r' || e.key === 'R') reset();
-      return;
+  async function rate(rating: ReviewRating) {
+    if (!currentCard || !isFlipped || reviewSaving) return;
+    reviewSaving = true;
+    localError = '';
+    try {
+      const reviewedCardId = currentCard.id;
+      const progress = await flashcardStore.reviewCard(deckId, reviewedCardId, rating);
+      cards = cards.map((card) => card.id === reviewedCardId ? { ...card, progress } : card);
+      next();
+    } catch (error) {
+      localError = error instanceof Error ? error.message : 'Could not save the review.';
+    } finally {
+      reviewSaving = false;
     }
-    if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); flip(); }
-    else if (e.key === 'ArrowLeft') prev();
-    else if (e.key === 'ArrowRight') next();
-    else if (e.key === 'Escape') window.location.href = `/deck/${deckId}`;
   }
 
-  $: frontIsCode = currentCard?.frontType === 'code';
-  $: backIsCode = currentCard?.backType === 'code';
-  $: cardLanguage = currentCard?.language ?? 'javascript';
+  async function downloadAttachment() {
+    if (!currentCard?.attachment) return;
+    try { await flashcardStore.downloadAttachment(currentCard.attachment); }
+    catch (error) { localError = error instanceof Error ? error.message : 'Could not download the attachment.'; }
+  }
+
+  function handleKey(event: KeyboardEvent) {
+    const target = event.target as HTMLElement | null;
+    if (target?.tagName === 'BUTTON') return;
+    if (done) {
+      if (event.key.toLowerCase() === 'r') reset();
+      return;
+    }
+    if (event.key === ' ' || event.key === 'Spacebar') { event.preventDefault(); flip(); }
+    else if (event.key === 'ArrowLeft') prev();
+    else if (event.key === 'ArrowRight') next();
+    else if (event.key === 'Escape') window.location.href = `/deck/${deckId}`;
+    else if (isFlipped && event.key === '1') void rate('again');
+    else if (isFlipped && event.key === '2') void rate('hard');
+    else if (isFlipped && event.key === '3') void rate('good');
+    else if (isFlipped && event.key === '4') void rate('easy');
+  }
 </script>
 
+<svelte:head><title>study {deck?.name ?? ''} · mindre</title></svelte:head>
 <svelte:window on:keydown={handleKey} />
 
 <div class="study-page">
-  {#if !deck || deck.cards.length === 0}
-    <div class="empty">
-      <p class="prompt-msg"><span class="prompt">$</span> no cards to study</p>
-      <a href="/deck/{deckId}">← back to deck</a>
-    </div>
+  {#if localError || $flashcardStore.error}
+    <div class="study-error" role="alert">error: {localError || $flashcardStore.error}</div>
+  {/if}
 
+  {#if loading}
+    <div class="loading-state">loading review session<span class="blink">▌</span></div>
+  {:else if !deck}
+    <div class="empty"><p class="prompt-msg"><span class="prompt">$</span> deck not found or access denied</p><a href="/">← back to decks</a></div>
+  {:else if cards.length === 0}
+    <div class="empty">
+      <p class="prompt-msg"><span class="prompt">$</span> {dueMode ? 'no cards are due right now' : 'no cards to study'}</p>
+      <a href="/deck/{deckId}">← back to deck</a>
+      {#if dueMode && deck.cards.length > 0}<a href="/study/{deckId}">study all cards →</a>{/if}
+    </div>
   {:else if done}
     <div class="done-screen">
-      <div class="done-header">
-        <span class="prompt">$</span>
-        <span class="done-cmd">session complete</span>
-      </div>
+      <div class="done-header"><span class="prompt">$</span><span class="done-cmd">session complete</span></div>
       <div class="done-check">✓</div>
-      <p class="done-msg">You reviewed all <strong>{total}</strong> card{total !== 1 ? 's' : ''}.</p>
-      <div class="done-actions">
-        <button class="primary" on:click={reset}>↺ restart</button>
-        <button on:click={shuffle}>⇄ shuffle</button>
-        <a href="/deck/{deckId}" class="done-back">← back to deck</a>
-      </div>
+      <p class="done-msg">You reviewed <strong>{total}</strong> card{total !== 1 ? 's' : ''}.</p>
+      <div class="done-actions"><button class="primary" on:click={reset}>↺ restart</button><button on:click={shuffle}>⇄ shuffle</button><a href="/deck/{deckId}" class="done-back">← back to deck</a></div>
     </div>
-
   {:else}
-    <!-- Progress -->
-    <div class="progress-wrap">
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: {progressPct}%"></div>
-      </div>
-      <span class="progress-label">{currentIndex + 1}/{total}</span>
-    </div>
+    <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width: {progressPct}%"></div></div><span class="progress-label">{currentIndex + 1}/{total}</span></div>
 
-    <!-- Header -->
     <div class="study-header">
       <a href="/deck/{deckId}" class="exit">← exit</a>
-      <div class="study-meta">
-        <span class="deck-label">{deck.name}</span>
-        {#if shuffled}
-          <span class="shuffled-badge">⇄ shuffled</span>
-        {/if}
-      </div>
-      <button class="shuffle-btn" on:click={shuffle}>
-        {shuffled ? '✓ shuffled' : '⇄ shuffle'}
-      </button>
+      <div class="study-meta"><span class="deck-label">{deck.name}</span>{#if dueMode}<span class="mode-badge">due review</span>{/if}{#if shuffled}<span class="shuffled-badge">⇄ shuffled</span>{/if}</div>
+      <button class="shuffle-btn" on:click={shuffle}>{shuffled ? '✓ shuffled' : '⇄ shuffle'}</button>
     </div>
 
-    <!-- Card scene -->
-    <div
-      class="card-scene"
-      on:click={flip}
-      on:keydown={e => e.key === 'Enter' && flip()}
-      role="button"
-      tabindex="0"
-      aria-label="Flashcard — click or press space to flip"
-    >
+    <div class="card-scene" on:click={flip} on:keydown={(event) => { if (event.key === 'Enter') flip(); }} role="button" tabindex="0" aria-label="Flashcard — click or press space to flip">
       <div class="card-3d" class:flipped={isFlipped}>
-        <!-- Front -->
         <div class="card-face front" class:is-code={frontIsCode}>
           <span class="face-label">front {frontIsCode ? '· code' : ''}</span>
-          <div class="card-body" class:code-body={frontIsCode}>
-            {#if frontIsCode}
-              <CodeBlock code={currentCard?.front ?? ''} language={cardLanguage} />
-            {:else}
-              <p class="card-text">{currentCard?.front}</p>
-            {/if}
-          </div>
-          {#if !frontIsCode}
-            <span class="flip-hint">space / click to reveal →</span>
-          {/if}
+          <div class="card-body" class:code-body={frontIsCode}>{#if frontIsCode}<CodeBlock code={currentCard?.front ?? ''} language={cardLanguage} />{:else}<p class="card-text">{currentCard?.front}</p>{/if}</div>
+          {#if !frontIsCode}<span class="flip-hint">space / click to reveal →</span>{/if}
         </div>
-
-        <!-- Back -->
         <div class="card-face back" class:is-code={backIsCode}>
           <span class="face-label back-label">back {backIsCode ? '· code' : ''}</span>
-          <div class="card-body" class:code-body={backIsCode}>
-            {#if backIsCode}
-              <CodeBlock code={currentCard?.back ?? ''} language={cardLanguage} />
-            {:else}
-              <p class="card-text">{currentCard?.back}</p>
-            {/if}
-          </div>
-          {#if !backIsCode}
-            <span class="flip-hint">← click to flip back</span>
-          {/if}
+          <div class="card-body" class:code-body={backIsCode}>{#if backIsCode}<CodeBlock code={currentCard?.back ?? ''} language={cardLanguage} />{:else}<p class="card-text">{currentCard?.back}</p>{/if}</div>
+          {#if currentCard?.attachment}<div class="attachment-study"><button on:click|stopPropagation={downloadAttachment}>↓ {currentCard.attachment.originalFilename}</button></div>{/if}
+          {#if !backIsCode}<span class="flip-hint">rate your recall below</span>{/if}
         </div>
       </div>
     </div>
 
-    <!-- Controls -->
-    <div class="controls">
-      <button on:click={prev} disabled={currentIndex === 0}>← prev</button>
-      <div class="dots">
-        {#each cards as _, i}
-          <span
-            class="dot"
-            class:active={i === currentIndex}
-            class:past={i < currentIndex}
-          ></span>
-        {/each}
+    {#if isFlipped}
+      <div class="review-actions" aria-label="Review quality">
+        <button class="again" on:click={() => rate('again')} disabled={reviewSaving}><kbd>1</kbd> again</button>
+        <button on:click={() => rate('hard')} disabled={reviewSaving}><kbd>2</kbd> hard</button>
+        <button class="primary" on:click={() => rate('good')} disabled={reviewSaving}><kbd>3</kbd> good</button>
+        <button class="easy" on:click={() => rate('easy')} disabled={reviewSaving}><kbd>4</kbd> easy</button>
       </div>
-      <button class="primary" on:click={next}>
-        {currentIndex === total - 1 ? 'finish ✓' : 'next →'}
-      </button>
-    </div>
+      <div class="review-hint">rating saves the next due date and advances</div>
+    {/if}
 
-    <!-- Keyboard hints -->
-    <div class="kbd-hints">
-      <kbd>←</kbd> prev
-      <kbd>space</kbd> flip
-      <kbd>→</kbd> next
-      <kbd>esc</kbd> exit
-    </div>
+    <div class="controls"><button on:click={prev} disabled={currentIndex === 0}>← prev</button><div class="dots">{#each cards as _, i}<span class="dot" class:active={i === currentIndex} class:past={i < currentIndex}></span>{/each}</div><button class="primary" on:click={next}>{currentIndex === total - 1 ? 'finish ✓' : 'next →'}</button></div>
+    <div class="kbd-hints"><kbd>←</kbd> prev <kbd>space</kbd> flip <kbd>→</kbd> next <kbd>1-4</kbd> rate <kbd>esc</kbd> exit</div>
   {/if}
 </div>
 
@@ -529,4 +523,16 @@
     .kbd-hints { display: none; }
     .deck-label { display: none; }
   }
+
+  .loading-state { color: var(--fg-4); text-transform: uppercase; letter-spacing: .08em; }
+  .mode-badge { font-size: 9px; color: var(--accent-2); text-transform: uppercase; letter-spacing: .08em; }
+  .review-actions { width: 100%; max-width: 640px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .review-actions button { padding: 8px 5px; }
+  .review-actions .again:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-dim); }
+  .review-actions .easy { border-color: var(--accent); color: var(--accent); }
+  .review-hint { width: 100%; max-width: 640px; text-align: center; color: var(--fg-4); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+  .study-error { width: 100%; max-width: 640px; color: var(--danger); border: 1px solid var(--danger); background: var(--danger-dim); padding: 9px 12px; font-size: 11px; }
+  .attachment-study { position: absolute; bottom: 16px; right: 16px; z-index: 3; }
+  .attachment-study button { padding: 4px 8px; font-size: 9px; color: var(--accent-2); }
+  @media (max-width: 520px) { .review-actions { grid-template-columns: repeat(2, 1fr); } }
 </style>

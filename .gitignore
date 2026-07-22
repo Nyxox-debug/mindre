@@ -4,8 +4,4 @@ build
 .env
 .env.*
 !.env.example
-vercel.json
-.output
-tmp.vercel
-.vercel
-copy.txt
+.DS_Store
