@@ -1,7 +1,7 @@
-import { writable } from 'svelte/store';
-import type { SupabaseClient, User } from '@supabase/supabase-js';
-import type { Database } from '$lib/supabase/database.types';
-import type { Profile } from '$lib/types';
+import { writable } from "svelte/store";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { Database } from "$lib/supabase/database.types";
+import type { Profile } from "$lib/types";
 
 interface AuthState {
   user: User | null;
@@ -17,27 +17,33 @@ function createAuthStore() {
     user: null,
     profile: null,
     loading: true,
-    error: null
+    error: null,
   });
 
   return {
     subscribe,
-    resolve(supabase: SupabaseClient<Database>, user: User | null, profile: Profile | null) {
+    resolve(
+      supabase: SupabaseClient<Database>,
+      user: User | null,
+      profile: Profile | null,
+    ) {
       client = supabase;
       set({ user, profile, loading: false, error: null });
     },
     setError(message: string | null) {
       update((state) => ({ ...state, error: message }));
     },
-    async signInWithGoogle(next = '/') {
-      if (!client) throw new Error('Authentication is still loading.');
+    async signInWithGoogle(next = "/") {
+      if (!client) throw new Error("Authentication is still loading.");
       update((state) => ({ ...state, loading: true, error: null }));
 
-      const callback = new URL('/auth/callback', window.location.origin);
-      callback.searchParams.set('next', next.startsWith('/') ? next : '/');
+      const callback = new URL("/auth/callback", window.location.origin);
+
       const { error } = await client.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: callback.toString() }
+        provider: "google",
+        options: {
+          redirectTo: callback.toString(),
+        },
       });
 
       if (error) {
@@ -54,12 +60,12 @@ function createAuthStore() {
         throw error;
       }
       set({ user: null, profile: null, loading: false, error: null });
-      window.location.assign('/login');
+      window.location.assign("/login");
     },
     reset() {
       client = null;
       set({ user: null, profile: null, loading: true, error: null });
-    }
+    },
   };
 }
 
